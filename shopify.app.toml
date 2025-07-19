@@ -3,7 +3,7 @@
 client_id = "f56e0d0591a87dcfc4f609e3be0c41ef"
 name = "escriv-ecom"
 handle = "escriv-ecom"
-application_url = "https://unwrap-beginners-roller-hamilton.trycloudflare.com"
+application_url = "https://manufacturer-buys-earl-mind.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://unwrap-beginners-roller-hamilton.trycloudflare.com/auth/callback", "https://unwrap-beginners-roller-hamilton.trycloudflare.com/auth/shopify/callback", "https://unwrap-beginners-roller-hamilton.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://manufacturer-buys-earl-mind.trycloudflare.com/auth/callback", "https://manufacturer-buys-earl-mind.trycloudflare.com/auth/shopify/callback", "https://manufacturer-buys-earl-mind.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
