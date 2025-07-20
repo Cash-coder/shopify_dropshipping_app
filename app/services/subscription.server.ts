@@ -1,3 +1,8 @@
+/**
+ *- Stripe integration:
+  - checkSubscriptionStatus() queries active Stripe subscriptions by shop domain metadata
+  - createPaymentSession() creates Stripe checkout sessions with subscription mode
+ */
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

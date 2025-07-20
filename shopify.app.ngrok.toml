@@ -1,0 +1,33 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+# NGROK CONFIGURATION
+
+client_id = "REPLACE_WITH_NEW_APP_CLIENT_ID"
+name = "escriv-ecom-ngrok"
+handle = "escriv-ecom-ngrok"
+application_url = "https://1f2349f8f9db.ngrok-free.app"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products"
+
+[auth]
+redirect_urls = ["https://1f2349f8f9db.ngrok-free.app/auth/callback", "https://1f2349f8f9db.ngrok-free.app/auth/shopify/callback", "https://1f2349f8f9db.ngrok-free.app/api/auth/callback"]
+
+[pos]
+embedded = false
