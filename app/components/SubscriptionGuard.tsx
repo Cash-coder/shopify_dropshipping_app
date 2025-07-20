@@ -16,14 +16,27 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
 
   useEffect(() => {
     if (paymentFetcher.data?.url) {
-      // Use parent window location for external redirect
-      if (window.parent) {
-        window.parent.location.href = paymentFetcher.data.url;
-      } else {
+      // Use modern approach to handle external redirects in embedded apps
+      try {
+        // For Shopify embedded apps, use shopify:// protocol for better redirect handling
+        if (app && typeof app.dispatch === 'function') {
+          app.dispatch({
+            type: 'Redirect',
+            payload: { 
+              url: paymentFetcher.data.url,
+              newContext: true 
+            }
+          });
+        } else {
+          // Direct window redirect as fallback
+          window.top!.location.href = paymentFetcher.data.url;
+        }
+      } catch (error) {
+        console.warn('App Bridge redirect failed, using direct redirect:', error);
         window.top!.location.href = paymentFetcher.data.url;
       }
     }
-  }, [paymentFetcher.data?.url]);
+  }, [paymentFetcher.data?.url, app]);
 
   if (isLoading) {
     return (

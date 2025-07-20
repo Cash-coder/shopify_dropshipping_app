@@ -1,3 +1,8 @@
+/**
+ *- Checks subscription status:
+  - Accepts shop domain as customerId
+  - Returns {isActive: boolean, error?: string}
+ */
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { checkSubscriptionStatus } from '../services/subscription.server';

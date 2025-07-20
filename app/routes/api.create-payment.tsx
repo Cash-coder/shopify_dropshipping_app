@@ -1,3 +1,8 @@
+/**
+ *- Creates Stripe payment sessions:
+  - Builds Shopify admin URLs for success/cancel redirects
+  - Returns checkout URL for external redirect
+ */
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { createPaymentSession } from '../services/subscription.server';
@@ -8,8 +13,8 @@ export async function action({ request }: ActionFunctionArgs) {
   
   try {
     const url = new URL(request.url);
-    // Redirect back to Shopify admin context
-    const successUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app/payment-success`;
+    // Redirect back to Shopify admin context - go directly to main app after payment
+    const successUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app`;
     const cancelUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app`;
     
     const { url: checkoutUrl } = await createPaymentSession(
