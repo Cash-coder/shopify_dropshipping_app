@@ -20,10 +20,10 @@ export function SubscriptionProvider({ children, customerId }: SubscriptionProvi
   const [isLoading, setIsLoading] = useState(true);
   const [lastCheckTime, setLastCheckTime] = useState(0);
 
-  const refetch = () => {
+  const refetch = (force = false) => {
     const now = Date.now();
-    // Prevent too frequent checks (minimum 2 seconds between checks)
-    if (now - lastCheckTime < 2000) {
+    // Prevent too frequent checks (minimum 2 seconds between checks) unless forced
+    if (!force && now - lastCheckTime < 2000) {
       console.log('⏸️ Skipping subscription check - too soon since last check');
       return;
     }
@@ -42,11 +42,22 @@ export function SubscriptionProvider({ children, customerId }: SubscriptionProvi
   }, [customerId]);
 
   useEffect(() => {
-    if (fetcher.state === 'idle' && fetcher.data !== undefined) {
+    if (fetcher.state === 'idle') {
       console.log('📊 Subscription check result:', fetcher.data);
       setIsLoading(false);
     }
   }, [fetcher.state, fetcher.data]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading && fetcher.state !== 'loading' && fetcher.state !== 'submitting') {
+        console.log('⏰ Subscription check timeout - forcing loading to false');
+        setIsLoading(false);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoading, fetcher.state]);
 
   const value: SubscriptionContextType = {
     isActive: fetcher.data?.isActive ?? false,
