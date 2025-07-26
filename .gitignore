@@ -16,10 +16,13 @@ database.sqlite
 
 .env
 .env.*
+env.d.ts
 
-
-
-
+# ignore config files with secrets, but track a template
+shopify.app.toml
+shopify.app.dev.toml
+shopify.app.ngrok.toml
+shopify.app.toml.backup
 
 /extensions/*/dist
 

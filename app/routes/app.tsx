@@ -6,28 +6,37 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import { Hello } from "../components/Hello";
+import { SubscriptionProvider } from "../context/SubscriptionContext";
+import { SubscriptionGuard } from "../components/SubscriptionGuard";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { 
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    customerId: session.shop // Using shop as customer ID for demo
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, customerId } = useLoaderData<typeof loader>();
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <Hello/>
-      <NavMenu>
-        <Link to="/app" rel="home">
-          Home
-        </Link>
-        <Link to="/app/additional">Additional page</Link>
-      </NavMenu>
-      <Outlet />
+      <SubscriptionProvider customerId={customerId}>
+        <SubscriptionGuard>
+          <Hello/>
+          <NavMenu>
+            <Link to="/app" rel="home">
+              Home
+            </Link>
+            <Link to="/app/additional">Additional page</Link>
+          </NavMenu>
+          <Outlet />
+        </SubscriptionGuard>
+      </SubscriptionProvider>
     </AppProvider>
   );
 }
