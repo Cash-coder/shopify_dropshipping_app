@@ -12,10 +12,9 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 interface SubscriptionProviderProps {
   children: ReactNode;
-  customerId: string;
 }
 
-export function SubscriptionProvider({ children, customerId }: SubscriptionProviderProps) {
+export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const fetcher = useFetcher<{ isActive: boolean; error?: string }>();
   const [isLoading, setIsLoading] = useState(true);
   const [lastCheckTime, setLastCheckTime] = useState(0);
@@ -28,18 +27,18 @@ export function SubscriptionProvider({ children, customerId }: SubscriptionProvi
       return;
     }
     
-    console.log('🔄 Starting subscription check for:', customerId);
+    console.log('🔄 Starting subscription check using session');
     setIsLoading(true);
     setLastCheckTime(now);
     fetcher.submit(
-      { customerId },
+      {},
       { method: 'post', action: '/api/subscription-status' }
     );
   };
 
   useEffect(() => {
     refetch();
-  }, [customerId]);
+  }, []);
 
   useEffect(() => {
     if (fetcher.state === 'idle') {

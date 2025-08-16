@@ -1,20 +1,19 @@
 /**
- *- Checks subscription status:
-  - Accepts shop domain as customerId
-  - Returns {isActive: boolean, error?: string}
+ * Checks Shopify app subscription status:
+ * - Uses authenticated session instead of shop domain
+ * - Returns subscription details from Shopify Billing API
  */
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { checkSubscriptionStatus } from '../services/subscription.server';
+import { authenticate } from '../shopify.server';
 
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const shopDomain = formData.get('customerId') as string;
-
-  if (!shopDomain) {
-    return json({ isActive: false, error: 'Shop domain required' }, { status: 400 });
+  try {
+    const result = await checkSubscriptionStatus(request);
+    return json(result);
+  } catch (error) {
+    console.error('Subscription status check error:', error);
+    return json({ isActive: false, error: 'Failed to check subscription status' }, { status: 500 });
   }
-
-  const result = await checkSubscriptionStatus(shopDomain);
-  return json(result);
 }

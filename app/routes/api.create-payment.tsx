@@ -1,35 +1,36 @@
 /**
- *- Creates Stripe payment sessions:
-  - Builds Shopify admin URLs for success/cancel redirects
-  - Returns checkout URL for external redirect
+ * Creates Shopify app billing subscriptions:
+ * - Uses Shopify Billing API instead of Stripe
+ * - Returns confirmation URL for subscription approval
  */
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { createPaymentSession } from '../services/subscription.server';
+import { createAppSubscription } from '../services/subscription.server';
 import { authenticate } from '../shopify.server';
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { session } = await authenticate.admin(request);
-  
   try {
-    const url = new URL(request.url);
-    // Redirect back to Shopify admin context - go directly to main app after payment
-    const successUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app`;
-    const cancelUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app`;
+    // Get session for building return URL
+    const { session } = await authenticate.admin(request);
     
-    const { url: checkoutUrl } = await createPaymentSession(
-      session.shop,
-      successUrl,
-      cancelUrl
+    // Return URL after subscription confirmation
+    const returnUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app`;
+    
+    const { confirmationUrl } = await createAppSubscription(
+      request,
+      returnUrl,
+      "Premium Plan", // Plan name
+      50.00, // Price
+      "EVERY_30_DAYS" // Billing interval
     );
     
-    if (!checkoutUrl) {
-      throw new Error('Failed to create checkout session');
+    if (!confirmationUrl) {
+      throw new Error('Failed to create subscription');
     }
     
-    return json({ url: checkoutUrl });
+    return json({ url: confirmationUrl });
   } catch (error) {
-    console.error('Payment creation error:', error);
-    return json({ error: 'Failed to create payment session' }, { status: 500 });
+    console.error('Subscription creation error:', error);
+    return json({ error: 'Failed to create subscription' }, { status: 500 });
   }
 }

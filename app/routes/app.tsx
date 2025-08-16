@@ -12,20 +12,19 @@ import { SubscriptionGuard } from "../components/SubscriptionGuard";
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  await authenticate.admin(request);
 
   return { 
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-    customerId: session.shop // Using shop as customer ID for demo
+    apiKey: process.env.SHOPIFY_API_KEY || ""
   };
 };
 
 export default function App() {
-  const { apiKey, customerId } = useLoaderData<typeof loader>();
+  const { apiKey } = useLoaderData<typeof loader>();
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <SubscriptionProvider customerId={customerId}>
+      <SubscriptionProvider>
         <SubscriptionGuard>
           <Hello/>
           <NavMenu>
