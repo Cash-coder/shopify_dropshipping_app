@@ -3,7 +3,7 @@
 client_id = "f56e0d0591a87dcfc4f609e3be0c41ef"
 name = "escriv-ecom"
 handle = "escriv-ecom"
-application_url = "https://probability-madrid-gate-disturbed.trycloudflare.com"
+application_url = "https://alien-scientist-auctions-download.trycloudflare.com"
 embedded = true
 
 [build]
@@ -23,10 +23,10 @@ api_version = "2025-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_products,write_products"
 
 [auth]
-redirect_urls = ["https://probability-madrid-gate-disturbed.trycloudflare.com/auth/callback", "https://probability-madrid-gate-disturbed.trycloudflare.com/auth/shopify/callback", "https://probability-madrid-gate-disturbed.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://alien-scientist-auctions-download.trycloudflare.com/auth/callback", "https://alien-scientist-auctions-download.trycloudflare.com/auth/shopify/callback", "https://alien-scientist-auctions-download.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
