@@ -18,6 +18,8 @@ database.sqlite
 .env.*
 env.d.ts
 
+.log
+
 # ignore config files with secrets, but track a template
 shopify.app.toml
 shopify.app.dev.toml

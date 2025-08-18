@@ -14,6 +14,10 @@ const GET_PRODUCTS_QUERY = `
           productType
           vendor
           tags
+          category {
+            id
+            name
+          }
           images(first: 10) {
             edges {
               node {
@@ -30,6 +34,14 @@ const GET_PRODUCTS_QUERY = `
                 price
                 sku
                 inventoryQuantity
+                inventoryItem {
+                  measurement {
+                    weight {
+                      value
+                      unit
+                    }
+                  }
+                }
               }
             }
           }
@@ -93,54 +105,126 @@ export async function getSupplierProducts(supplierAccessToken: string) {
 
 export async function importProductToStore(request: Request, product: any) {
   try {
-    const { session } = await authenticate.admin(request);
+    const { admin } = await authenticate.admin(request);
 
     console.log('Importing product:', product.title);
-    console.log('Has images:', product.images?.edges?.length || 0);
-    console.log('Has variants:', product.variants?.edges?.length || 0);
-    console.log('First variant price:', product.variants?.edges?.[0]?.node?.price);
-
-    // Use REST API for simpler product creation with variants and images
-    const firstVariant = product.variants.edges[0]?.node;
     
-    const productData = {
-      product: {
-        title: product.title,
-        body_html: product.description,
-        handle: product.handle + '-imported',
-        product_type: product.productType,
-        vendor: product.vendor,
-        tags: product.tags.join(','),
-        variants: [{
-          price: firstVariant?.price || '0.00',
-          sku: firstVariant?.sku || '',
-          inventory_management: 'shopify',
-          inventory_quantity: 0
-        }],
-        images: product.images.edges.map((img: any) => ({
-          src: img.node.url,
-          alt: img.node.altText
-        }))
+    const firstVariant = product.variants.edges[0]?.node;
+    console.log('Price:', firstVariant?.price, 'SKU:', firstVariant?.sku, 'Inventory:', firstVariant?.inventoryQuantity);
+    console.log('Category:', product.category?.name, 'Weight:', firstVariant?.inventoryItem?.measurement?.weight?.value, firstVariant?.inventoryItem?.measurement?.weight?.unit);
+
+    // Use modern productSet mutation for complete product creation
+    const CREATE_PRODUCT_WITH_VARIANTS = `
+      mutation productSet($input: ProductSetInput!, $synchronous: Boolean!) {
+        productSet(input: $input, synchronous: $synchronous) {
+          product {
+            id
+            title
+            handle
+            variants(first: 10) {
+              nodes {
+                id
+                sku
+                price
+                inventoryQuantity
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
       }
+    `;
+
+    // Get unique variant titles for options
+    const variantTitles = product.variants.edges.map((edge: any) => edge.node.title || "Default Title");
+    const uniqueTitles = [...new Set(variantTitles)];
+
+    const productInput = {
+      title: product.title,
+      descriptionHtml: product.description,
+      handle: product.handle + '-imported',
+      productType: product.productType,
+      vendor: product.vendor,
+      tags: product.tags,
+      category: product.category?.id || null,
+      productOptions: [{
+        name: "Title",
+        values: uniqueTitles.map(title => ({ name: title }))
+      }],
+      variants: product.variants.edges.map((variantEdge: any, index: number) => {
+        const variant = variantEdge.node;
+        return {
+          price: variant.price,
+          inventoryItem: {
+            sku: variant.sku,
+            tracked: false,
+            measurement: variant.inventoryItem?.measurement?.weight ? {
+              weight: {
+                unit: variant.inventoryItem.measurement.weight.unit || "GRAMS",
+                value: variant.inventoryItem.measurement.weight.value
+              }
+            } : null
+          },
+          optionValues: [{
+            name: variant.title || `Default Title ${index + 1}`,
+            optionName: "Title"
+          }]
+        };
+      })
     };
 
-    const response = await fetch(`https://${session.shop}/admin/api/2025-07/products.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': session.accessToken,
-      },
-      body: JSON.stringify(productData)
+    console.log('Creating product with variants:', productInput.variants.length);
+
+    const response = await admin.graphql(CREATE_PRODUCT_WITH_VARIANTS, {
+      variables: { 
+        input: productInput,
+        synchronous: true
+      }
     });
 
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(`REST API error: ${JSON.stringify(result)}`);
+    const responseData = await response.json();
+    const { product: createdProduct, userErrors } = responseData.data?.productSet || {};
+
+    if (userErrors && userErrors.length > 0) {
+      throw new Error(userErrors.map((e: any) => e.message).join(', '));
     }
 
-    console.log('✅ Product created with price and images:', result.product?.title);
-    return result.product;
+    // Add images separately since ProductSetInput doesn't support media
+    if (product.images.edges.length > 0 && createdProduct?.id) {
+      const CREATE_MEDIA = `
+        mutation productCreateMedia($productId: ID!, $media: [CreateMediaInput!]!) {
+          productCreateMedia(productId: $productId, media: $media) {
+            media {
+              id
+            }
+            mediaUserErrors {
+              field
+              message
+            }
+          }
+        }
+      `;
+
+      const media = product.images.edges.map((img: any) => ({
+        originalSource: img.node.url,
+        alt: img.node.altText,
+        mediaContentType: "IMAGE"
+      }));
+
+      await admin.graphql(CREATE_MEDIA, {
+        variables: { productId: createdProduct.id, media }
+      });
+
+      console.log('Images added to product');
+    }
+
+    console.log('✅ Product created with all data:', createdProduct?.title);
+    console.log('Variants created:', createdProduct?.variants?.nodes?.length || 0);
+    
+    return createdProduct;
   } catch (error) {
     console.error('Error importing product:', error);
     throw error;
