@@ -4,11 +4,7 @@
 client_id = "218950dbb1b01721766854e2d4382769"
 name = "escriv-ecom"
 handle = "escriv-ecom-1"
-<<<<<<< HEAD
-application_url = "https://renewable-ambient-rw-creator.trycloudflare.com"
-=======
-application_url = "https://dame-perry-hair-je.trycloudflare.com"
->>>>>>> exp
+application_url = "https://essence-uri-unix-flag.trycloudflare.com"
 embedded = true
 
 [build]
@@ -31,11 +27,7 @@ api_version = "2025-07"
 scopes = "read_products, write_products, read_locations, read_orders, read_products, write_inventory, write_products"
 
 [auth]
-<<<<<<< HEAD
-redirect_urls = ["https://renewable-ambient-rw-creator.trycloudflare.com/auth/callback", "https://renewable-ambient-rw-creator.trycloudflare.com/auth/shopify/callback", "https://renewable-ambient-rw-creator.trycloudflare.com/api/auth/callback"]
-=======
-redirect_urls = ["https://dame-perry-hair-je.trycloudflare.com/auth/callback", "https://dame-perry-hair-je.trycloudflare.com/auth/shopify/callback", "https://dame-perry-hair-je.trycloudflare.com/api/auth/callback"]
->>>>>>> exp
+redirect_urls = ["https://essence-uri-unix-flag.trycloudflare.com/auth/callback", "https://essence-uri-unix-flag.trycloudflare.com/auth/shopify/callback", "https://essence-uri-unix-flag.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
