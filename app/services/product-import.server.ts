@@ -34,6 +34,14 @@ const GET_PRODUCTS_QUERY = `
                 price
                 sku
                 inventoryQuantity
+                inventoryItem {
+                  measurement {
+                    weight {
+                      value
+                      unit
+                    }
+                  }
+                }
                 selectedOptions {
                   name
                   value
@@ -164,13 +172,22 @@ export async function getSupplierProducts(supplierAccessToken: string) {
       },
       body: JSON.stringify({
         query: GET_PRODUCTS_QUERY,
-        variables: { first: 5 }
+        variables: { first: 10 }
       })
     });
 
     console.log('Response status:', response.status);
     const result = await response.json();
-    // console.log('GraphQL result:', JSON.stringify(result, null, 2));
+    
+    // Log first part of the response to debug
+    console.log('GraphQL result keys:', Object.keys(result));
+    if (result.data) {
+      console.log('Data keys:', Object.keys(result.data));
+      console.log('Products edges length:', result.data.products?.edges?.length || 'No edges');
+    }
+    if (result.errors) {
+      console.log('GraphQL errors:', JSON.stringify(result.errors, null, 2));
+    }
 
     const products = result.data?.products?.edges?.map((edge: any) => edge.node) || [];
     console.log('Found products:', products.length);
@@ -293,7 +310,13 @@ export async function importProductToStore(request: Request, product: any, sessi
               price: firstVariant.price || '0.00',
               inventoryItem: {
                 sku: firstVariant.sku || '',
-                tracked: true
+                tracked: true,
+                measurement: firstVariant.inventoryItem?.measurement?.weight ? {
+                  weight: {
+                    value: firstVariant.inventoryItem.measurement.weight.value,
+                    unit: firstVariant.inventoryItem.measurement.weight.unit || 'KILOGRAMS'
+                  }
+                } : undefined
               }
             }]
           }
@@ -369,7 +392,13 @@ export async function importProductToStore(request: Request, product: any, sessi
           price: variant.price || '0.00',
           inventoryItem: {
             sku: variant.sku || '',
-            tracked: true
+            tracked: true,
+            measurement: variant.inventoryItem?.measurement?.weight ? {
+              weight: {
+                value: variant.inventoryItem.measurement.weight.value,
+                unit: variant.inventoryItem.measurement.weight.unit || 'KILOGRAMS'
+              }
+            } : undefined
           },
           inventoryQuantities: [{
             availableQuantity: variant.inventoryQuantity || 0,
