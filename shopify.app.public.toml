@@ -4,7 +4,7 @@
 client_id = "218950dbb1b01721766854e2d4382769"
 name = "escriv-ecom"
 handle = "escriv-ecom-1"
-application_url = "https://shed-ever-strings-christina.trycloudflare.com"
+application_url = "https://dame-perry-hair-je.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,7 +27,7 @@ api_version = "2025-07"
 scopes = "read_products, write_products, read_locations, read_orders, read_products, write_inventory, write_products"
 
 [auth]
-redirect_urls = ["https://shed-ever-strings-christina.trycloudflare.com/auth/callback", "https://shed-ever-strings-christina.trycloudflare.com/auth/shopify/callback", "https://shed-ever-strings-christina.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://dame-perry-hair-je.trycloudflare.com/auth/callback", "https://dame-perry-hair-je.trycloudflare.com/auth/shopify/callback", "https://dame-perry-hair-je.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

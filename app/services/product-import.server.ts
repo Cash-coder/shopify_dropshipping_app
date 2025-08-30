@@ -14,6 +14,10 @@ const GET_PRODUCTS_QUERY = `
           vendor
           tags
           totalInventory
+          options {
+            name
+            values
+          }
           images(first: 10) {
             edges {
               node {
@@ -30,6 +34,10 @@ const GET_PRODUCTS_QUERY = `
                 price
                 sku
                 inventoryQuantity
+                selectedOptions {
+                  name
+                  value
+                }
               }
             }
           }
@@ -40,12 +48,98 @@ const GET_PRODUCTS_QUERY = `
 `;
 
 const CREATE_PRODUCT_MUTATION = `
-  mutation productCreate($input: ProductInput!) {
-    productCreate(input: $input) {
+  mutation productCreate($product: ProductCreateInput!) {
+    productCreate(product: $product) {
       product {
         id
         title
         handle
+        options {
+          name
+          values
+        }
+        variants(first: 10) {
+          nodes {
+            id
+            title
+            price
+            sku
+            inventoryItem {
+              id
+            }
+            selectedOptions {
+              name
+              value
+            }
+          }
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const CREATE_VARIANTS_MUTATION = `
+  mutation productVariantsBulkCreate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+    productVariantsBulkCreate(productId: $productId, variants: $variants) {
+      productVariants {
+        id
+        title
+        price
+        sku
+        selectedOptions {
+          name
+          value
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+// Update first variant with price and SKU (inventory handled separately)
+const UPDATE_FIRST_VARIANT_MUTATION = `
+  mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+    productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+      productVariants {
+        id
+        price
+        sku
+        inventoryItem {
+          id
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const ADJUST_INVENTORY_MUTATION = `
+  mutation inventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
+    inventoryAdjustQuantities(input: $input) {
+      inventoryAdjustmentGroup {
+        reason
+        changes {
+          name
+          delta
+          quantityAfterChange
+          item {
+            id
+          }
+          location {
+            id
+            name
+          }
+        }
       }
       userErrors {
         field
@@ -70,13 +164,13 @@ export async function getSupplierProducts(supplierAccessToken: string) {
       },
       body: JSON.stringify({
         query: GET_PRODUCTS_QUERY,
-        variables: { first: 50 }
+        variables: { first: 5 }
       })
     });
 
     console.log('Response status:', response.status);
     const result = await response.json();
-    console.log('GraphQL result:', JSON.stringify(result, null, 2));
+    // console.log('GraphQL result:', JSON.stringify(result, null, 2));
 
     const products = result.data?.products?.edges?.map((edge: any) => edge.node) || [];
     console.log('Found products:', products.length);
@@ -93,58 +187,225 @@ export async function getSupplierProducts(supplierAccessToken: string) {
   }
 }
 
-export async function importProductToStore(request: Request, product: any) {
-  try {
-    const { session } = await authenticate.admin(request);
 
-    console.log('Importing product:', product.title);
-    // console.log('Has images:', product.images?.edges?.length || 0);
-    // console.log('Has variants:', product.variants?.edges?.length || 0);
-    // console.log('First variant price:', product.variants?.edges?.[0]?.node?.price);
-    console.log("-----------------------------");
-    // Use REST API for simpler product creation with variants and images
-    const firstVariant = product.variants.edges[0]?.node;
+export async function importProductToStore(request: Request, product: any, session?: any, locationId?: string, retryCount = 0) {
+  const MAX_RETRIES = 2;
+  
+  try {
+    // Use provided session or authenticate only when needed
+    const currentSession = session || (await authenticate.admin(request)).session;
     
-    const productData = {
-      product: {
-        title: product.title,
-        body_html: product.description,
-        handle: product.handle + '-imported',
-        product_type: product.productType,
-        vendor: product.vendor,
-        tags: product.tags.join(','),
-        variants: [{
-          price: firstVariant?.price || '0.00',
-          sku: firstVariant?.sku || '',
-          inventory_management: 'shopify',
-          inventory_quantity: product.totalInventory
-        }],
-        images: product.images.edges.map((img: any) => ({
-          src: img.node.url,
-          alt: img.node.altText
-        }))
-      }
+    console.log("\n----------------------------------------------------------\n");
+    console.log('Importing product:', product.title);
+    console.log('Product variants:', JSON.stringify(product.variants, null, 2));
+    
+    // Use GraphQL API for product creation with proper variant support
+    
+    const productInput = {
+      title: product.title,
+      descriptionHtml: product.description,
+      handle: product.handle + '-imported',
+      productType: product.productType,
+      vendor: product.vendor,
+      tags: product.tags,
+      productOptions: product.options?.map((option: any) => ({
+        name: option.name,
+        values: option.values.map((value: string) => ({ name: value }))
+      })) || []
     };
 
-    const response = await fetch(`https://${session.shop}/admin/api/2025-07/products.json`, {
+    console.log('GraphQL Product Input to import:', JSON.stringify(productInput, null, 2));
+
+    const response = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': session.accessToken,
+        'X-Shopify-Access-Token': currentSession.accessToken,
       },
-      body: JSON.stringify(productData)
+      body: JSON.stringify({
+        query: CREATE_PRODUCT_MUTATION,
+        variables: { product: productInput }
+      })
     });
 
     const result = await response.json();
     
     if (!response.ok) {
-      throw new Error(`REST API error: ${JSON.stringify(result)}`);
+      // Handle specific error cases
+      if (response.status === 401 && retryCount < MAX_RETRIES) {
+        console.log(`Authentication failed for ${product.title}, retrying with fresh session... (${retryCount + 1}/${MAX_RETRIES})`);
+        // Get fresh session and retry
+        return importProductToStore(request, product, undefined, locationId, retryCount + 1);
+      }
+      
+      console.error(`Import failed for ${product.title}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        error: result
+      });
+      throw new Error(`API error (response code: ${response.status}): ${JSON.stringify(result)}`);
     }
 
-    console.log('Product created with price and images:', result.product?.title);
-    return result.product;
+    // Handle GraphQL errors
+    if (result.errors) {
+      console.error(`GraphQL errors for ${product.title}:`, result.errors);
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    if (result.data?.productCreate?.userErrors?.length > 0) {
+      console.error(`Product creation errors for ${product.title}:`, result.data.productCreate.userErrors);
+      throw new Error(`Product creation errors: ${JSON.stringify(result.data.productCreate.userErrors)}`);
+    }
+
+    const createdProduct = result.data?.productCreate?.product;
+    console.log('Product created successfully:', createdProduct?.title);
+    
+    // Update the first variant with correct price, SKU, and inventory quantity
+    if (createdProduct?.variants?.nodes?.[0] && product.variants.edges.length > 0) {
+      const firstVariant = product.variants.edges[0].node;
+      const createdFirstVariant = createdProduct.variants.nodes[0];
+      
+      console.log(`Updating first variant with price ${firstVariant.price}, SKU ${firstVariant.sku}, and quantity ${firstVariant.inventoryQuantity}...`);
+      
+      const updateVariantResponse = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': currentSession.accessToken,
+        },
+        body: JSON.stringify({
+          query: UPDATE_FIRST_VARIANT_MUTATION,
+          variables: {
+            productId: createdProduct.id,
+            variants: [{
+              id: createdFirstVariant.id,
+              price: firstVariant.price || '0.00',
+              inventoryItem: {
+                sku: firstVariant.sku || '',
+                tracked: true
+              }
+            }]
+          }
+        })
+      });
+
+      const updateResult = await updateVariantResponse.json();
+      
+      if (updateResult.errors) {
+        console.error('First variant update errors:', updateResult.errors);
+      } else if (updateResult.data?.productVariantsBulkUpdate?.userErrors?.length > 0) {
+        console.error('First variant update user errors:', updateResult.data.productVariantsBulkUpdate.userErrors);
+      } else {
+        console.log('First variant updated successfully');
+        
+        // Now adjust inventory quantity separately
+        if (firstVariant.inventoryQuantity && firstVariant.inventoryQuantity > 0) {
+          console.log(`Adjusting inventory for first variant to ${firstVariant.inventoryQuantity}...`);
+          console.log('Using inventoryItemId:', createdFirstVariant.inventoryItem?.id);
+          console.log('Using locationId:', locationId);
+          
+          const inventoryInput = {
+            reason: 'correction',
+            name: 'available',
+            changes: [{
+              delta: firstVariant.inventoryQuantity,
+              inventoryItemId: createdFirstVariant.inventoryItem?.id,
+              locationId: locationId
+            }]
+          };
+          
+          console.log('Inventory adjustment input:', JSON.stringify(inventoryInput, null, 2));
+          console.log('Inventory adjustment mutation:', ADJUST_INVENTORY_MUTATION);
+          
+          const adjustInventoryResponse = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': currentSession.accessToken,
+            },
+            body: JSON.stringify({
+              query: ADJUST_INVENTORY_MUTATION,
+              variables: {
+                input: inventoryInput
+              }
+            })
+          });
+
+          const adjustResult = await adjustInventoryResponse.json();
+          console.log('Inventory adjustment response:', JSON.stringify(adjustResult, null, 2));
+          
+          if (adjustResult.errors) {
+            console.error('Inventory adjustment errors:', adjustResult.errors);
+          } else if (adjustResult.data?.inventoryAdjustQuantities?.userErrors?.length > 0) {
+            console.error('Inventory adjustment user errors:', adjustResult.data.inventoryAdjustQuantities.userErrors);
+          } else {
+            console.log('Inventory adjusted successfully');
+          }
+        }
+      }
+    }
+    
+    // Create additional variants if we have more than one (skip first one as it's already created during first step of product creation)
+    if (product.variants.edges.length > 1) {
+      const additionalVariants = product.variants.edges.slice(1); // Skip first variant
+      console.log(`Creating ${additionalVariants.length} additional variants for ${createdProduct?.title}...`);
+      
+      // Use the locationId passed as parameter
+      
+      const variantsInput = additionalVariants.map((variantEdge: any) => {
+        const variant = variantEdge.node;
+        return {
+          price: variant.price || '0.00',
+          inventoryItem: {
+            sku: variant.sku || '',
+            tracked: true
+          },
+          inventoryQuantities: [{
+            availableQuantity: variant.inventoryQuantity || 0,
+            locationId: locationId
+          }],
+          optionValues: variant.selectedOptions?.map((option: any) => ({
+            optionName: option.name,
+            name: option.value
+          })) || []
+        };
+      });
+
+      const variantsResponse = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': currentSession.accessToken,
+        },
+        body: JSON.stringify({
+          query: CREATE_VARIANTS_MUTATION,
+          variables: { 
+            productId: createdProduct.id,
+            variants: variantsInput 
+          }
+        })
+      });
+
+      const variantsResult = await variantsResponse.json();
+      
+      if (variantsResult.errors) {
+        console.error('Variants creation errors:', variantsResult.errors);
+      } else if (variantsResult.data?.productVariantsBulkCreate?.userErrors?.length > 0) {
+        console.error('Variants creation user errors:', variantsResult.data.productVariantsBulkCreate.userErrors);
+      } else {
+        console.log(`Successfully created ${variantsResult.data?.productVariantsBulkCreate?.productVariants?.length || 0} variants`);
+      }
+    }
+    
+    return createdProduct;
+
   } catch (error) {
-    console.error('Error importing product:', error);
+    if (retryCount < MAX_RETRIES && (error as any)?.message?.includes('401')) {
+      console.log(`Retrying import for ${product.title} due to auth error... (${retryCount + 1}/${MAX_RETRIES})`);
+      return importProductToStore(request, product, undefined, retryCount + 1);
+    }
+    
+    console.error(`Final error importing ${product.title}:`, error);
     throw error;
   }
 }

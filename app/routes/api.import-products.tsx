@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { getSupplierProducts, importProductToStore } from '../services/product-import.server';
+import { authenticate } from '../shopify.server';
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -25,13 +26,32 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ message: 'No products found in supplier store', imported: 0 });
     }
 
+    // Get session once for all imports
+    const { session } = await authenticate.admin(request);
+    
+    // Get primary location ID once for all products
+    const locationResponse = await fetch(`https://${session.shop}/admin/api/2025-01/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': session.accessToken,
+      },
+      body: JSON.stringify({
+        query: `query { locations(first: 1) { edges { node { id name } } } }`
+      })
+    });
+    const locationResult = await locationResponse.json();
+    const locationId = locationResult.data?.locations?.edges?.[0]?.node?.id;
+    
+    console.log('Using location ID for inventory:', locationId);
+    
     // Import each product
     let imported = 0;
     let errors = [];
 
     for (const product of supplierProducts) {
       try {
-        await importProductToStore(request, product);
+        await importProductToStore(request, product, session, locationId);
         imported++;
       } catch (error) {
         console.error(`Failed to import ${product.title}:`, error);
