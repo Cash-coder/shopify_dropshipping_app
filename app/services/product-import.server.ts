@@ -1,6 +1,5 @@
 import { authenticate } from "../shopify.server";
 
-const SUPPLIER_STORE = "droptest444.myshopify.com";
 
 const GET_PRODUCTS_QUERY = `
   query getProducts($first: Int!) {
@@ -14,6 +13,7 @@ const GET_PRODUCTS_QUERY = `
           productType
           vendor
           tags
+          totalInventory
           images(first: 10) {
             edges {
               node {
@@ -56,11 +56,13 @@ const CREATE_PRODUCT_MUTATION = `
 `;
 
 export async function getSupplierProducts(supplierAccessToken: string) {
+  // const SUPPLIER_STORE = "droptest444.myshopify.com";
   try {
-    console.log('Fetching products from supplier store:', SUPPLIER_STORE);
+    console.log('Fetching products from supplier store:', process.env.SUPPLIER_STORE_NAME);
     console.log('Using access token:', supplierAccessToken ? 'Token provided' : 'No token');
 
-    const response = await fetch(`https://${SUPPLIER_STORE}/admin/api/2025-07/graphql.json`, {
+    const response = await fetch(`https://${process.env.SUPPLIER_STORE_NAME}.myshopify.com/admin/api/${process.env.API_VERSION}/graphql.json`, {
+      //                          https://{{supplier_store_name}}.myshopify.com/admin/api/{{api_version}}/graphql.json
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -86,7 +88,7 @@ export async function getSupplierProducts(supplierAccessToken: string) {
     
     return products;
   } catch (error) {
-    console.error('❌ Error fetching supplier products:', error);
+    console.error('Error fetching supplier products:', error);
     throw new Error('Failed to fetch supplier products');
   }
 }
@@ -96,10 +98,10 @@ export async function importProductToStore(request: Request, product: any) {
     const { session } = await authenticate.admin(request);
 
     console.log('Importing product:', product.title);
-    console.log('Has images:', product.images?.edges?.length || 0);
-    console.log('Has variants:', product.variants?.edges?.length || 0);
-    console.log('First variant price:', product.variants?.edges?.[0]?.node?.price);
-
+    // console.log('Has images:', product.images?.edges?.length || 0);
+    // console.log('Has variants:', product.variants?.edges?.length || 0);
+    // console.log('First variant price:', product.variants?.edges?.[0]?.node?.price);
+    console.log("-----------------------------");
     // Use REST API for simpler product creation with variants and images
     const firstVariant = product.variants.edges[0]?.node;
     
@@ -115,7 +117,7 @@ export async function importProductToStore(request: Request, product: any) {
           price: firstVariant?.price || '0.00',
           sku: firstVariant?.sku || '',
           inventory_management: 'shopify',
-          inventory_quantity: 0
+          inventory_quantity: product.totalInventory
         }],
         images: product.images.edges.map((img: any) => ({
           src: img.node.url,
@@ -139,7 +141,7 @@ export async function importProductToStore(request: Request, product: any) {
       throw new Error(`REST API error: ${JSON.stringify(result)}`);
     }
 
-    console.log('✅ Product created with price and images:', result.product?.title);
+    console.log('Product created with price and images:', result.product?.title);
     return result.product;
   } catch (error) {
     console.error('Error importing product:', error);
