@@ -48,8 +48,8 @@ const GET_PRODUCTS_QUERY = `
 `;
 
 const CREATE_PRODUCT_MUTATION = `
-  mutation productCreate($product: ProductCreateInput!) {
-    productCreate(product: $product) {
+  mutation productCreate($product: ProductCreateInput!, $media: [CreateMediaInput!]) {
+    productCreate(product: $product, media: $media) {
       product {
         id
         title
@@ -214,7 +214,15 @@ export async function importProductToStore(request: Request, product: any, sessi
       })) || []
     };
 
+    // Prepare media data
+    const mediaInput = product.images.edges.map((img: any) => ({
+      alt: img.node.altText,
+      mediaContentType: 'IMAGE',
+      originalSource: img.node.url
+    }));
+
     console.log('GraphQL Product Input to import:', JSON.stringify(productInput, null, 2));
+    console.log('Media Input:', JSON.stringify(mediaInput, null, 2));
 
     const response = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
       method: 'POST',
@@ -224,7 +232,10 @@ export async function importProductToStore(request: Request, product: any, sessi
       },
       body: JSON.stringify({
         query: CREATE_PRODUCT_MUTATION,
-        variables: { product: productInput }
+        variables: { 
+          product: productInput,
+          media: mediaInput
+        }
       })
     });
 
