@@ -94,20 +94,172 @@ const TrendIndicator = styled.div<{ trend: 'up' | 'down' | 'neutral' }>`
   };
 `;
 
-const ChartPlaceholder = styled.div`
+const ChartContainer = styled.div`
   width: 100%;
   height: 200px;
-  background: #f6f6f7;
-  border: 2px dashed #c9cccf;
-  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+`;
+
+const LineChart = styled.svg`
+  width: 100%;
+  height: 100%;
+  border-bottom: 2px solid #e1e3e5;
+  border-left: 2px solid #e1e3e5;
+`;
+
+const LineChartContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 16px;
+`;
+
+const BarChart = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  border-bottom: 2px solid #e1e3e5;
+  border-left: 2px solid #e1e3e5;
+  padding: 8px;
+`;
+
+const Bar = styled.div<{ height: string }>`
+  flex: 1;
+  height: ${props => props.height};
+  background: #4a90e2;
+  border-radius: 4px 4px 0 0;
+  min-height: 10px;
+`;
+
+const DonutChartContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6d7175;
-  font-size: 16px;
+  gap: 32px;
+  width: 100%;
+`;
+
+const DonutChart = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #27ae60 0deg 252deg,
+    #e74c3c 252deg 360deg
+  );
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+  }
+`;
+
+const ChartLegend = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+`;
+
+const LegendItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const LegendColor = styled.div<{ color: string }>`
+  width: 12px;
+  height: 12px;
+  background: ${props => props.color};
+  border-radius: 2px;
 `;
 
 export default function Index() {
+  const renderChart = (chart: any) => {
+    switch (chart.type) {
+      case 'line':
+        const maxValue = Math.max(...chart.data);
+        const points = chart.data.map((value: number, index: number) => {
+          const x = (index / (chart.data.length - 1)) * 280;
+          const y = 140 - ((value / maxValue) * 120);
+          return `${x},${y}`;
+        }).join(' ');
+
+        return (
+          <ChartContainer>
+            <LineChartContainer>
+              <LineChart viewBox="0 0 300 160">
+                <polyline
+                  fill="none"
+                  stroke="#4a90e2"
+                  strokeWidth="3"
+                  points={points}
+                />
+                {chart.data.map((value: number, index: number) => {
+                  const x = (index / (chart.data.length - 1)) * 280;
+                  const y = 140 - ((value / maxValue) * 120);
+                  return (
+                    <circle
+                      key={index}
+                      cx={x}
+                      cy={y}
+                      r="4"
+                      fill="#4a90e2"
+                    />
+                  );
+                })}
+              </LineChart>
+            </LineChartContainer>
+          </ChartContainer>
+        );
+      
+      case 'bar':
+        return (
+          <ChartContainer>
+            <BarChart>
+              {chart.data.map((bar: any, index: number) => (
+                <Bar 
+                  key={index}
+                  height={`${(bar.value / 3500) * 100}%`}
+                />
+              ))}
+            </BarChart>
+          </ChartContainer>
+        );
+      
+      case 'donut':
+        return (
+          <ChartContainer>
+            <DonutChartContainer>
+              <DonutChart />
+              <ChartLegend>
+                {chart.data.map((item: any, index: number) => (
+                  <LegendItem key={index}>
+                    <LegendColor color={item.color} />
+                    <span>{item.label}: {item.value}%</span>
+                  </LegendItem>
+                ))}
+              </ChartLegend>
+            </DonutChartContainer>
+          </ChartContainer>
+        );
+      
+      default:
+        return <div>Chart type not supported</div>;
+    }
+  };
+
   const metricsData = [
     {
       title: 'Pedidos por confirmar',
@@ -156,15 +308,30 @@ export default function Index() {
   const chartsData = [
     {
       title: 'Pedidos totales histórico',
-      icon: ChartLineIcon
+      icon: ChartLineIcon,
+      type: 'line',
+      data: [12, 19, 25, 32, 28, 35, 42]
     },
     {
       title: 'Facturación',
-      icon: ChartHistogramGrowthIcon
+      icon: ChartHistogramGrowthIcon,
+      type: 'bar',
+      data: [
+        { label: 'Ene', value: 2500 },
+        { label: 'Feb', value: 1800 },
+        { label: 'Mar', value: 3200 },
+        { label: 'Abr', value: 2100 },
+        { label: 'May', value: 2800 }
+      ]
     },
     {
       title: 'Pedidos entregados / Rechazados',
-      icon: ChartDonutIcon
+      icon: ChartDonutIcon,
+      type: 'donut',
+      data: [
+        { label: 'Entregados', value: 70, color: '#27ae60' },
+        { label: 'Rechazados', value: 30, color: '#e74c3c' }
+      ]
     }
   ];
 
@@ -204,9 +371,7 @@ export default function Index() {
                     <Icon source={chart.icon} tone="base" />
                   </div>
                 </InlineStack>
-                <ChartPlaceholder>
-                  Gráfico - {chart.title}
-                </ChartPlaceholder>
+                {renderChart(chart)}
               </BlockStack>
             </ChartCard>
           ))}
