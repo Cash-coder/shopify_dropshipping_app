@@ -9,6 +9,7 @@ const GET_PRODUCTS_QUERY = `
           id
           title
           description
+          descriptionHtml
           handle
           productType
           vendor
@@ -221,7 +222,7 @@ export async function importProductToStore(request: Request, product: any, sessi
     
     const productInput = {
       title: product.title,
-      descriptionHtml: product.description,
+      descriptionHtml: product.descriptionHtml || product.description,
       handle: product.handle + '-imported',
       productType: product.productType,
       vendor: product.vendor,
