@@ -97,38 +97,13 @@ const TrendIndicator = styled.div<{ trend: 'up' | 'down' | 'neutral' }>`
 const ChartContainer = styled.div`
   width: 100%;
   height: 200px;
-  padding: 16px;
+  // padding: 16px;
   position: relative;
-`;
-
-const LineChart = styled.svg`
-  width: 100%;
-  height: 100%;
-`;
-
-const LineChartContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  position: relative;
-  padding: 16px;
-`;
-
-const BarChart = styled.div`
-  width: 100%;
-  height: 100%;
   display: flex;
-  align-items: end;
-  gap: 8px;
-  padding: 8px;
+  align-items: center;
+  justify-content: center;
 `;
 
-const Bar = styled.div<{ height: string }>`
-  flex: 1;
-  height: ${props => props.height};
-  background: #4a90e2;
-  border-radius: 4px 4px 0 0;
-  min-height: 10px;
-`;
 
 const DonutChartContainer = styled.div`
   display: flex;
@@ -143,7 +118,7 @@ const DonutChart = styled.div`
   height: 120px;
   border-radius: 50%;
   background: conic-gradient(
-    #27ae60 0deg 252deg,
+    #4a90e2 0deg 252deg,
     #e74c3c 252deg 360deg
   );
   position: relative;
@@ -182,55 +157,112 @@ const LegendColor = styled.div<{ color: string }>`
 `;
 
 export default function Index() {
+  // Generate last 5 months dynamically
+  const getLast5Months = () => {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const currentDate = new Date();
+    const last5Months = [];
+    
+    for (let i = 4; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const monthIndex = date.getMonth();
+      last5Months.push({
+        label: months[monthIndex],
+        value: Math.floor(Math.random() * 2000) + 1500 // Random values between 1500-3500
+      });
+    }
+    
+    return last5Months;
+  };
+
   const renderChart = (chart: any) => {
     switch (chart.type) {
       case 'line':
         const maxValue = Math.max(...chart.data);
+        const minValue = Math.min(...chart.data);
+        const valueRange = maxValue - minValue || 1;
+        
         const points = chart.data.map((value: number, index: number) => {
-          const x = (index / (chart.data.length - 1)) * 280;
-          const y = 140 - ((value / maxValue) * 120);
+          const x = 40 + (index / (chart.data.length - 1)) * 180;
+          const y = 20 + ((maxValue - value) / valueRange) * 120;
           return `${x},${y}`;
         }).join(' ');
 
+        const yLabels = [];
+        for (let i = 0; i <= 4; i++) {
+          const value = Math.round(minValue + (valueRange * i / 4));
+          const y = 140 - (i * 30);
+          yLabels.push({ value, y });
+        }
+
         return (
           <ChartContainer>
-            <LineChartContainer>
-              <LineChart viewBox="0 0 300 160">
-                <polyline
-                  fill="none"
-                  stroke="#4a90e2"
-                  strokeWidth="3"
-                  points={points}
-                />
-                {chart.data.map((value: number, index: number) => {
-                  const x = (index / (chart.data.length - 1)) * 280;
-                  const y = 140 - ((value / maxValue) * 120);
-                  return (
-                    <circle
-                      key={index}
-                      cx={x}
-                      cy={y}
-                      r="4"
-                      fill="#4a90e2"
-                    />
-                  );
-                })}
-              </LineChart>
-            </LineChartContainer>
+            <svg width="100%" height="100%" viewBox="0 0 250 160">
+              {yLabels.map((label, index) => (
+                <text key={index} x="35" y={label.y + 4} textAnchor="end" fontSize="10" fill="#6d7175">
+                  {label.value}
+                </text>
+              ))}
+              <polyline
+                fill="none"
+                stroke="#4a90e2"
+                strokeWidth="3"
+                points={points}
+              />
+              {chart.data.map((value: number, index: number) => {
+                const x = 40 + (index / (chart.data.length - 1)) * 180;
+                const y = 20 + ((maxValue - value) / valueRange) * 120;
+                return (
+                  <circle
+                    key={index}
+                    cx={x}
+                    cy={y}
+                    r="3"
+                    fill="#4a90e2"
+                  />
+                );
+              })}
+            </svg>
           </ChartContainer>
         );
       
       case 'bar':
+        const maxBarValue = Math.max(...chart.data.map((d: any) => d.value));
+        
         return (
           <ChartContainer>
-            <BarChart>
-              {chart.data.map((bar: any, index: number) => (
-                <Bar 
-                  key={index}
-                  height={`${(bar.value / 3500) * 100}%`}
-                />
-              ))}
-            </BarChart>
+            <svg width="100%" height="100%" viewBox="0 0 300 160">
+              {chart.data.map((bar: any, index: number) => {
+                const x = 50 + index * 45;
+                const barHeight = (bar.value / maxBarValue) * 150;
+                const y = 120 - barHeight;
+                return (
+                  <g key={index}>
+                    <rect
+                      x={x}
+                      y={y}
+                      width="35"
+                      height={barHeight}
+                      fill="#4a90e2"
+                      rx="3"
+                    />
+                    <text x={x + 17.5} y="140" textAnchor="middle" fontSize="12" fill="#6d7175">
+                      {bar.label}
+                    </text>
+                  </g>
+                );
+              })}
+              {[0, 1, 2, 3, 4].map(i => {
+                const value = Math.round((maxBarValue * i / 4));
+                const y = 120 - (i * 25);
+                if (value === 0) return null;
+                return (
+                  <text key={i} x="40" y={y + 4} textAnchor="end" fontSize="12" fill="#6d7175">
+                    {value}
+                  </text>
+                );
+              })}
+            </svg>
           </ChartContainer>
         );
       
@@ -312,20 +344,14 @@ export default function Index() {
       title: 'Facturación',
       icon: ChartHistogramGrowthIcon,
       type: 'bar',
-      data: [
-        { label: 'Ene', value: 2500 },
-        { label: 'Feb', value: 1800 },
-        { label: 'Mar', value: 3200 },
-        { label: 'Abr', value: 2100 },
-        { label: 'May', value: 2800 }
-      ]
+      data: getLast5Months()
     },
     {
       title: 'Pedidos entregados / Rechazados',
       icon: ChartDonutIcon,
       type: 'donut',
       data: [
-        { label: 'Entregados', value: 70, color: '#27ae60' },
+        { label: 'Entregados', value: 70, color: '#4a90e2' },
         { label: 'Rechazados', value: 30, color: '#e74c3c' }
       ]
     }
