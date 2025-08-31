@@ -26,13 +26,11 @@ export default function App() {
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <SubscriptionProvider>
         <SubscriptionGuard>
-          <Hello/>
           <NavMenu>
             <Link to="/app" rel="home">
-              Home
+              Panel de Control
             </Link>
-            <Link to="/app/import-products">Importar Productos</Link>
-            <Link to="/app/additional">Additional page</Link>
+            <Link to="/app/additional">Importar Productos</Link>
           </NavMenu>
           <Outlet />
         </SubscriptionGuard>

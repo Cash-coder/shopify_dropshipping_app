@@ -1,4 +1,3 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
 import { Page, Card, Text, BlockStack, InlineStack, Icon } from '@shopify/polaris';
 import {
   CartIcon,
@@ -8,18 +7,9 @@ import {
   AlertTriangleIcon,
   RefreshIcon,
   ChartVerticalIcon,
-  OrderIcon,
-  ChartDonutIcon,
-  ChartLineIcon,
-  ChartHistogramGrowthIcon
+  OrderIcon
 } from '@shopify/polaris-icons';
 import styled from 'styled-components';
-import { authenticate } from "../shopify.server";
-
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
-};
 
 const DashboardContainer = styled.div`
   padding: 24px;
@@ -107,7 +97,7 @@ const ChartPlaceholder = styled.div`
   font-size: 16px;
 `;
 
-export default function Index() {
+export default function CRMDashboard() {
   const metricsData = [
     {
       title: 'Pedidos por confirmar',
@@ -121,7 +111,7 @@ export default function Index() {
       value: '275,00 €',
       trend: 'up' as const,
       trendValue: '+12%',
-      icon: ChartVerticalIcon
+      icon: CashDollarIcon
     },
     {
       title: 'Facturación en tránsito',
@@ -135,7 +125,7 @@ export default function Index() {
       value: '275,00 €',
       trend: 'up' as const,
       trendValue: '+18%',
-      icon: CashDollarIcon
+      icon: CheckCircleIcon
     },
     {
       title: 'Dinero Incidencias',
@@ -156,15 +146,15 @@ export default function Index() {
   const chartsData = [
     {
       title: 'Pedidos totales histórico',
-      icon: ChartLineIcon
+      icon: ChartVerticalIcon
     },
     {
       title: 'Facturación',
-      icon: ChartHistogramGrowthIcon
+      icon: ChartVerticalIcon
     },
     {
       title: 'Pedidos entregados / Rechazados',
-      icon: ChartDonutIcon
+      icon: OrderIcon
     }
   ];
 
@@ -200,9 +190,7 @@ export default function Index() {
                   <Text as="h3" variant="headingMd">
                     {chart.title}
                   </Text>
-                  <div style={{display: 'flex', justifyContent: 'center'}}>
-                    <Icon source={chart.icon} tone="base" />
-                  </div>
+                  <Icon source={chart.icon} tone="base" />
                 </InlineStack>
                 <ChartPlaceholder>
                   Gráfico - {chart.title}

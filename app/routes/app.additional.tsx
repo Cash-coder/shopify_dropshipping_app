@@ -1,83 +1,75 @@
-import {
-  Box,
-  Card,
-  Layout,
-  Link,
-  List,
-  Page,
-  Text,
-  BlockStack,
-} from "@shopify/polaris";
+import { useState } from 'react';
+import { Page, Card, Button, Text, BlockStack, Banner } from '@shopify/polaris';
+import { useFetcher } from '@remix-run/react';
 import { TitleBar } from "@shopify/app-bridge-react";
 
-export default function AdditionalPage() {
+export default function ImportProducts() {
+  const fetcher = useFetcher();
+  const [importResult, setImportResult] = useState<any>(null);
+
+  const handleImport = () => {
+    setImportResult(null);
+    fetcher.submit({}, { method: 'post', action: '/api/import-products' });
+  };
+
+  // Update result when fetch completes
+  if (fetcher.data && !importResult) {
+    setImportResult(fetcher.data);
+  }
+
+  const isLoading = fetcher.state === 'submitting';
+
   return (
     <Page>
-      <TitleBar title="Additional page" />
-      <Layout>
-        <Layout.Section>
+      <TitleBar title="Importar Productos" />
+      <BlockStack gap="500">
+        <Card>
+          <BlockStack gap="300">
+            <Text as="h2" variant="headingMd">
+              Importar productos desde Escriv-Ecom
+            </Text>
+            <Text as="p" variant="bodyMd">
+              Importa productos desde la tienda proveedora (droptest444) a tu tienda.
+            </Text>
+            <Button
+              primary
+              loading={isLoading}
+              onClick={handleImport}
+            >
+              Importar Productos
+            </Button>
+          </BlockStack>
+        </Card>
+
+        {importResult && (
           <Card>
             <BlockStack gap="300">
-              <Text as="p" variant="bodyMd">
-                The app template comes with an additional page which
-                demonstrates how to create multiple pages within app navigation
-                using{" "}
-                <Link
-                  url="https://shopify.dev/docs/apps/tools/app-bridge"
-                  target="_blank"
-                  removeUnderline
-                >
-                  App Bridge
-                </Link>
-                .
-              </Text>
-              <Text as="p" variant="bodyMd">
-                To create your own page and have it show up in the app
-                navigation, add a page inside <Code>app/routes</Code>, and a
-                link to it in the <Code>&lt;NavMenu&gt;</Code> component found
-                in <Code>app/routes/app.jsx</Code>.
-              </Text>
+              {importResult.error ? (
+                <Banner status="critical">
+                  <Text as="p">{importResult.error}</Text>
+                </Banner>
+              ) : (
+                <>
+                  <Banner status="success">
+                    <Text as="p">{importResult.message}</Text>
+                  </Banner>
+                  
+                  {importResult.errors && importResult.errors.length > 0 && (
+                    <Banner status="warning">
+                      <Text as="p">Algunos productos no se pudieron importar:</Text>
+                      <ul>
+                        {importResult.errors.map((error: string, index: number) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </Banner>
+                  )}
+                </>
+              )}
             </BlockStack>
           </Card>
-        </Layout.Section>
-        <Layout.Section variant="oneThird">
-          <Card>
-            <BlockStack gap="200">
-              <Text as="h2" variant="headingMd">
-                Resources
-              </Text>
-              <List>
-                <List.Item>
-                  <Link
-                    url="https://shopify.dev/docs/apps/design-guidelines/navigation#app-nav"
-                    target="_blank"
-                    removeUnderline
-                  >
-                    App nav best practices
-                  </Link>
-                </List.Item>
-              </List>
-            </BlockStack>
-          </Card>
-        </Layout.Section>
-      </Layout>
+        )}
+      </BlockStack>
     </Page>
-  );
-}
-
-function Code({ children }: { children: React.ReactNode }) {
-  return (
-    <Box
-      as="span"
-      padding="025"
-      paddingInlineStart="100"
-      paddingInlineEnd="100"
-      background="bg-surface-active"
-      borderWidth="025"
-      borderColor="border"
-      borderRadius="100"
-    >
-      <code>{children}</code>
-    </Box>
   );
 }
