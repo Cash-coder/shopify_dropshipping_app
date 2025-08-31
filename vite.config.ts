@@ -68,6 +68,9 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   optimizeDeps: {
-    include: ["@shopify/app-bridge-react", "@shopify/polaris"],
+    include: ["@shopify/app-bridge-react", "@shopify/polaris", "styled-components"],
+  },
+  ssr: {
+    noExternal: ["styled-components"],
   },
 }) satisfies UserConfig;

@@ -104,8 +104,6 @@ const ChartContainer = styled.div`
 const LineChart = styled.svg`
   width: 100%;
   height: 100%;
-  border-bottom: 2px solid #e1e3e5;
-  border-left: 2px solid #e1e3e5;
 `;
 
 const LineChartContainer = styled.div`
@@ -121,8 +119,6 @@ const BarChart = styled.div`
   display: flex;
   align-items: end;
   gap: 8px;
-  border-bottom: 2px solid #e1e3e5;
-  border-left: 2px solid #e1e3e5;
   padding: 8px;
 `;
 
