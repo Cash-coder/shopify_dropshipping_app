@@ -183,7 +183,7 @@ export default function Index() {
         const valueRange = maxValue - minValue || 1;
         
         const points = chart.data.map((value: number, index: number) => {
-          const x = 40 + (index / (chart.data.length - 1)) * 180;
+          const x = 55 + (index / (chart.data.length - 1)) * 170;
           const y = 20 + ((maxValue - value) / valueRange) * 120;
           return `${x},${y}`;
         }).join(' ');
@@ -195,6 +195,8 @@ export default function Index() {
           yLabels.push({ value, y });
         }
 
+        const monthLabels = getLast5Months();
+        
         return (
           <ChartContainer>
             <svg width="100%" height="100%" viewBox="0 0 250 160">
@@ -203,6 +205,14 @@ export default function Index() {
                   {label.value}
                 </text>
               ))}
+              {chart.data.map((value: number, index: number) => {
+                const x = 55 + (index / (chart.data.length - 1)) * 170;
+                return (
+                  <text key={index} x={x} y="155" textAnchor="middle" fontSize="10" fill="#6d7175">
+                    {monthLabels[index]?.label || `M${index + 1}`}
+                  </text>
+                );
+              })}
               <polyline
                 fill="none"
                 stroke="#4a90e2"
@@ -210,7 +220,7 @@ export default function Index() {
                 points={points}
               />
               {chart.data.map((value: number, index: number) => {
-                const x = 40 + (index / (chart.data.length - 1)) * 180;
+                const x = 55 + (index / (chart.data.length - 1)) * 170;
                 const y = 20 + ((maxValue - value) / valueRange) * 120;
                 return (
                   <circle
@@ -234,7 +244,7 @@ export default function Index() {
             <svg width="100%" height="100%" viewBox="0 0 300 160">
               {chart.data.map((bar: any, index: number) => {
                 const x = 50 + index * 45;
-                const barHeight = (bar.value / maxBarValue) * 150;
+                const barHeight = (bar.value / maxBarValue) * 120;
                 const y = 120 - barHeight;
                 return (
                   <g key={index}>
@@ -254,7 +264,7 @@ export default function Index() {
               })}
               {[0, 1, 2, 3, 4].map(i => {
                 const value = Math.round((maxBarValue * i / 4));
-                const y = 120 - (i * 25);
+                const y = 120 - (i * 30);
                 if (value === 0) return null;
                 return (
                   <text key={i} x="40" y={y + 4} textAnchor="end" fontSize="12" fill="#6d7175">
@@ -292,8 +302,8 @@ export default function Index() {
     {
       title: 'Pedidos por confirmar',
       value: '8',
-      trend: 'neutral' as const,
-      trendValue: '0%',
+      trend: 'up' as const,
+      trendValue: '35%',
       icon: CartIcon
     },
     {
@@ -306,8 +316,8 @@ export default function Index() {
     {
       title: 'Facturación en tránsito',
       value: '0,00 €',
-      trend: 'down' as const,
-      trendValue: '-5%',
+      trend: 'neutral' as const,
+      trendValue: '0%',
       icon: DeliveryIcon
     },
     {
@@ -338,13 +348,19 @@ export default function Index() {
       title: 'Pedidos totales histórico',
       icon: ChartLineIcon,
       type: 'line',
-      data: [12, 19, 25, 32, 28, 35, 42]
+      data: [12, 19, 25, 23, 42]
     },
     {
       title: 'Facturación',
       icon: ChartHistogramGrowthIcon,
       type: 'bar',
-      data: getLast5Months()
+      data: [
+        { label: 'Abr', value: 2100 },
+        { label: 'May', value: 2800 },
+        { label: 'Jun', value: 2500 },
+        { label: 'Jul', value: 3200 },
+        { label: 'Ago', value: 1800 }
+      ]
     },
     {
       title: 'Pedidos entregados / Rechazados',
