@@ -3,7 +3,7 @@ import { authenticate } from "../shopify.server";
 
 const GET_PRODUCTS_QUERY = `
   query getProducts($first: Int!) {
-    products(first: $first) {
+    products(first: $first, query: "status:ACTIVE") {
       edges {
         node {
           id
@@ -14,6 +14,7 @@ const GET_PRODUCTS_QUERY = `
           vendor
           tags
           totalInventory
+          status
           options {
             name
             values
