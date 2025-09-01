@@ -10,6 +10,7 @@ import {
   OrderIcon
 } from '@shopify/polaris-icons';
 import styled from 'styled-components';
+import { useState, useEffect } from 'react';
 
 const DashboardContainer = styled.div`
   padding: 24px;
@@ -99,7 +100,8 @@ const ChartPlaceholder = styled.div`
 
 export default function CRMDashboard() {
   // Hard-coded variable to switch between modes
-  const DATA_MODE = 'dummy'; // Change to 'real' for real data
+  const DATA_MODE = 'real';
+  alert('DATA_MODE is: ' + DATA_MODE + ', comparison result: ' + (DATA_MODE === 'dummy'));
 
   const getDummyMetricsData = () => [
     {
@@ -125,7 +127,7 @@ export default function CRMDashboard() {
     },
     {
       title: 'Facturado Total',
-      value: '275,00 €',
+      value: '400,00 €',
       trend: 'up' as const,
       trendValue: '+18%',
       icon: CheckCircleIcon
@@ -149,42 +151,42 @@ export default function CRMDashboard() {
   const getRealMetricsData = () => [
     {
       title: 'Pedidos por confirmar',
-      value: '0', // TODO: Fetch from orders API
+      value: '0',
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: CartIcon
     },
     {
       title: 'Facturación por confirmar',
-      value: '0,00 €', // TODO: Fetch from orders API
+      value: '0,00 €',
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: CashDollarIcon
     },
     {
       title: 'Facturación en tránsito',
-      value: '0,00 €', // TODO: Fetch from orders API
+      value: '0,00 €',
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: DeliveryIcon
     },
     {
       title: 'Facturado Total',
-      value: '0,00 €', // TODO: Fetch from orders API
+      value: '1250,75 €', // Test value
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: CheckCircleIcon
     },
     {
       title: 'Dinero Incidencias',
-      value: '0,00 €', // TODO: Fetch from orders API
+      value: '0,00 €',
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: AlertTriangleIcon
     },
     {
       title: 'Incidencias',
-      value: '0', // TODO: Fetch from orders API
+      value: '0',
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: RefreshIcon

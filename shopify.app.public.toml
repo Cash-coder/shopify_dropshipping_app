@@ -4,7 +4,7 @@
 client_id = "218950dbb1b01721766854e2d4382769"
 name = "escriv-ecom"
 handle = "escriv-ecom-1"
-application_url = "https://stating-pastor-authentication-launched.trycloudflare.com"
+application_url = "https://directories-inbox-texture-under.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,7 +27,7 @@ api_version = "2025-07"
 scopes = "read_products, write_products, read_locations, read_orders, read_products, write_inventory, write_products"
 
 [auth]
-redirect_urls = ["https://stating-pastor-authentication-launched.trycloudflare.com/auth/callback", "https://stating-pastor-authentication-launched.trycloudflare.com/auth/shopify/callback", "https://stating-pastor-authentication-launched.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://directories-inbox-texture-under.trycloudflare.com/auth/callback", "https://directories-inbox-texture-under.trycloudflare.com/auth/shopify/callback", "https://directories-inbox-texture-under.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

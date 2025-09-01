@@ -157,6 +157,8 @@ const LegendColor = styled.div<{ color: string }>`
 `;
 
 export default function Index() {
+  // Hard-coded variable to switch between modes
+  const DATA_MODE = 'real';
   // Generate last 5 months dynamically
   const getLast5Months = () => {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -298,7 +300,7 @@ export default function Index() {
     }
   };
 
-  const metricsData = [
+  const getDummyMetricsData = () => [
     {
       title: 'Pedidos por confirmar',
       value: '8',
@@ -343,6 +345,53 @@ export default function Index() {
     }
   ];
 
+  const getRealMetricsData = () => [
+    {
+      title: 'Pedidos por confirmar',
+      value: '0',
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: CartIcon
+    },
+    {
+      title: 'Facturación por confirmar',
+      value: '0,00 €',
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: ChartVerticalIcon
+    },
+    {
+      title: 'Facturación en tránsito',
+      value: '0,00 €',
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: DeliveryIcon
+    },
+    {
+      title: 'Facturado Total',
+      value: '1250,75 €', // Test value
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: CashDollarIcon
+    },
+    {
+      title: 'Dinero Incidencias',
+      value: '0,00 €',
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: AlertTriangleIcon
+    },
+    {
+      title: 'Incidencias',
+      value: '0',
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: RefreshIcon
+    }
+  ];
+
+  const metricsData = DATA_MODE === 'dummy' ? getDummyMetricsData() : getRealMetricsData();
+
   const chartsData = [
     {
       title: 'Pedidos totales histórico',
@@ -374,7 +423,7 @@ export default function Index() {
   ];
 
   return (
-    <Page title="Panel de Control">
+    <Page title="HOME PAGE - Panel de Control">
       <DashboardContainer>
         <MetricsGrid>
           {metricsData.map((metric, index) => (
