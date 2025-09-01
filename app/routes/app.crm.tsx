@@ -98,7 +98,10 @@ const ChartPlaceholder = styled.div`
 `;
 
 export default function CRMDashboard() {
-  const metricsData = [
+  // Hard-coded variable to switch between modes
+  const DATA_MODE = 'dummy'; // Change to 'real' for real data
+
+  const getDummyMetricsData = () => [
     {
       title: 'Pedidos por confirmar',
       value: '8',
@@ -142,6 +145,53 @@ export default function CRMDashboard() {
       icon: RefreshIcon
     }
   ];
+
+  const getRealMetricsData = () => [
+    {
+      title: 'Pedidos por confirmar',
+      value: '0', // TODO: Fetch from orders API
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: CartIcon
+    },
+    {
+      title: 'Facturación por confirmar',
+      value: '0,00 €', // TODO: Fetch from orders API
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: CashDollarIcon
+    },
+    {
+      title: 'Facturación en tránsito',
+      value: '0,00 €', // TODO: Fetch from orders API
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: DeliveryIcon
+    },
+    {
+      title: 'Facturado Total',
+      value: '0,00 €', // TODO: Fetch from orders API
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: CheckCircleIcon
+    },
+    {
+      title: 'Dinero Incidencias',
+      value: '0,00 €', // TODO: Fetch from orders API
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: AlertTriangleIcon
+    },
+    {
+      title: 'Incidencias',
+      value: '0', // TODO: Fetch from orders API
+      trend: 'neutral' as const,
+      trendValue: '0%',
+      icon: RefreshIcon
+    }
+  ];
+
+  const metricsData = DATA_MODE === 'dummy' ? getDummyMetricsData() : getRealMetricsData();
 
   const chartsData = [
     {
