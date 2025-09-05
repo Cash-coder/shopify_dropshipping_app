@@ -386,6 +386,8 @@ export default function CRMDashboard() {
 
   const metricsData = DATA_MODE === 'dummy' ? getDummyMetricsData() : getRealMetricsData();
 
+  const last5Months = getLast5Months();
+
   const chartsData = [
     {
       title: 'Pedidos totales histórico',
@@ -397,13 +399,10 @@ export default function CRMDashboard() {
       title: 'Facturación',
       icon: ChartHistogramGrowthIcon,
       type: 'bar',
-      data: [
-        { label: 'Abr', value: 2100 },
-        { label: 'May', value: 2800 },
-        { label: 'Jun', value: 2500 },
-        { label: 'Jul', value: 3200 },
-        { label: 'Ago', value: 1800 }
-      ]
+      data: last5Months.map(month => ({
+        label: month.label,
+        value: month.value
+      }))
     },
     {
       title: 'Pedidos entregados / Rechazados',
