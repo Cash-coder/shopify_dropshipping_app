@@ -100,8 +100,8 @@ const ChartPlaceholder = styled.div`
 
 export default function CRMDashboard() {
   // Hard-coded variable to switch between modes
-  const DATA_MODE = 'real';
-  alert('DATA_MODE is: ' + DATA_MODE + ', comparison result: ' + (DATA_MODE === 'dummy'));
+  const DATA_MODE = 'real'; // dummy
+  // const DATA_MODE = 'dummy'; 
 
   const getDummyMetricsData = () => [
     {

@@ -159,6 +159,7 @@ const LegendColor = styled.div<{ color: string }>`
 export default function Index() {
   // Hard-coded variable to switch between modes
   const DATA_MODE = 'real';
+  // const DATA_MODE = 'dummy';
   // Generate last 5 months dynamically
   const getLast5Months = () => {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -423,7 +424,7 @@ export default function Index() {
   ];
 
   return (
-    <Page title="HOME PAGE - Panel de Control">
+    <Page title="Panel de Control">
       <DashboardContainer>
         <MetricsGrid>
           {metricsData.map((metric, index) => (
