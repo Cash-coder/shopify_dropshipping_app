@@ -1,4 +1,3 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
 import { Page, Card, Text, BlockStack, InlineStack, Icon } from '@shopify/polaris';
 import {
   CartIcon,
@@ -14,12 +13,6 @@ import {
   ChartHistogramGrowthIcon
 } from '@shopify/polaris-icons';
 import styled from 'styled-components';
-import { authenticate } from "../shopify.server";
-
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
-};
 
 const DashboardContainer = styled.div`
   padding: 24px;
@@ -156,7 +149,7 @@ const LegendColor = styled.div<{ color: string }>`
   border-radius: 2px;
 `;
 
-export default function Index() {
+export default function CRMDashboard() {
   // Hard-coded variable to switch between modes
   const DATA_MODE = 'real';
   // const DATA_MODE = 'dummy';

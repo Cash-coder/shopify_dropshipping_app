@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import { Link, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -8,6 +8,7 @@ import { authenticate } from "../shopify.server";
 import { Hello } from "../components/Hello";
 import { SubscriptionProvider } from "../context/SubscriptionContext";
 import { SubscriptionGuard } from "../components/SubscriptionGuard";
+import CRMDashboard from "../components/CRMDashboard";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -32,7 +33,7 @@ export default function App() {
             </Link>
             <Link to="/app/additional">Importar Productos</Link>
           </NavMenu>
-          <Outlet />
+          <CRMDashboard />
         </SubscriptionGuard>
       </SubscriptionProvider>
     </AppProvider>
