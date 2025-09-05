@@ -9,6 +9,7 @@ import { Hello } from "../components/Hello";
 import { SubscriptionProvider } from "../context/SubscriptionContext";
 import { SubscriptionGuard } from "../components/SubscriptionGuard";
 import CRMDashboard from "../components/CRMDashboard";
+import { getCompletedOrdersByVendor } from "../services/orders.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 

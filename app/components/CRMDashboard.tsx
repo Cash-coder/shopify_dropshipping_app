@@ -13,6 +13,7 @@ import {
   ChartHistogramGrowthIcon
 } from '@shopify/polaris-icons';
 import styled from 'styled-components';
+import { useState, useEffect } from 'react';
 
 const DashboardContainer = styled.div`
   padding: 24px;
@@ -153,6 +154,31 @@ export default function CRMDashboard() {
   // Hard-coded variable to switch between modes
   const DATA_MODE = 'real';
   // const DATA_MODE = 'dummy';
+  
+  const [totalBilling, setTotalBilling] = useState<number>(0);
+  const [isLoadingBilling, setIsLoadingBilling] = useState<boolean>(true);
+
+  // Fetch billing data on component mount
+  useEffect(() => {
+    const fetchBillingData = async () => {
+      try {
+        const response = await fetch('/api/billing');
+        const data = await response.json();
+        
+        if (data.success) {
+          setTotalBilling(data.totalBilling);
+        } else {
+          console.error('Failed to fetch billing data:', data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching billing data:', error);
+      } finally {
+        setIsLoadingBilling(false);
+      }
+    };
+
+    fetchBillingData();
+  }, []);
   // Generate last 5 months dynamically
   const getLast5Months = () => {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -363,7 +389,9 @@ export default function CRMDashboard() {
     },
     {
       title: 'Facturado Total',
-      value: '1250,75 €', // Test value
+      value: isLoadingBilling 
+        ? 'Cargando...' 
+        : `${totalBilling.toFixed(2)} €`, // Real data from API
       trend: 'neutral' as const,
       trendValue: '0%',
       icon: CashDollarIcon

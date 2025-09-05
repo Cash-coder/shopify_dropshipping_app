@@ -50,11 +50,12 @@ export async function getCompletedOrdersByVendor(request: Request, vendor: strin
     // Query for orders with specific vendor that are paid and delivered
     const query = `financial_status:paid fulfillment_status:fulfilled`;
     
-    const response = await fetch(`https://${session.shop}/admin/api/2025-01/graphql.json`, {
+    const response = await fetch(`https://${session.shop}/admin/api/2024-10/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Shopify-Access-Token': session.accessToken,
+        'Shopify-Api-Features': 'include-presentment-prices',
       },
       body: JSON.stringify({
         query: GET_ORDERS_BY_VENDOR_QUERY,
@@ -66,14 +67,19 @@ export async function getCompletedOrdersByVendor(request: Request, vendor: strin
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('GraphQL HTTP error:', response.status, errorText);
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
     }
 
     const result = await response.json();
     
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
-      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      // Try to continue with partial data if available
+      if (!result.data) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      }
     }
 
     const orders = result.data?.orders?.edges?.map((edge: any) => edge.node) || [];
@@ -83,13 +89,13 @@ export async function getCompletedOrdersByVendor(request: Request, vendor: strin
 
     orders.forEach((order: any) => {
       // Check if order has line items from the specified vendor
-      const hasVendorItems = order.lineItems.edges.some((lineItemEdge: any) => 
+      const hasVendorItems = order.lineItems?.edges?.some((lineItemEdge: any) => 
         lineItemEdge.node.vendor === vendor
       );
       
       if (hasVendorItems) {
         // Sum only line items from the specified vendor
-        order.lineItems.edges.forEach((lineItemEdge: any) => {
+        order.lineItems?.edges?.forEach((lineItemEdge: any) => {
           if (lineItemEdge.node.vendor === vendor) {
             const amount = parseFloat(lineItemEdge.node.originalTotalSet.shopMoney.amount);
             totalAmount += amount;
@@ -98,6 +104,7 @@ export async function getCompletedOrdersByVendor(request: Request, vendor: strin
       }
     });
 
+    console.log(`Found ${orders.length} orders, total amount for vendor "${vendor}": ${totalAmount}`);
     return totalAmount;
 
   } catch (error) {

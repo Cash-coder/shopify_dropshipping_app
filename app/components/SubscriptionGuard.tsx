@@ -80,25 +80,25 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
         <Card>
           <BlockStack gap="400">
             <Text as="h2" variant="headingMd" tone="warning">
-              Payment Required
+              Se requiere Suscripción
             </Text>
             <Text as="p" variant="bodyMd">
-              Your subscription is not active. Please complete your payment to access the app.
+              Tu suscripción no está activa. Completa el pago para acceder a la aplicación.
             </Text>
             <Button 
               primary 
               onClick={handlePayment}
               loading={paymentFetcher.state === 'submitting'}
             >
-              Subscribe Now
+              Suscribirse Ahora
             </Button>
-            <Button 
+            {/* <Button 
               variant="plain"
               url="/debug/subscriptions"
               target="_blank"
             >
               Debug Subscriptions
-            </Button>
+            </Button> */}
           </BlockStack>
         </Card>
       </Page>
