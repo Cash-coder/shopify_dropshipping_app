@@ -4,7 +4,7 @@ import { getCompletedOrdersByVendor } from "../services/orders.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    const VENDOR_NAME = 'ALMACÉN ESCRIV ECOM'; // Hardcoded vendor name in uppercase
+    const VENDOR_NAME = 'Almacén Escriv Ecom'; // Hardcoded vendor name in uppercase
     const totalBilling = await getCompletedOrdersByVendor(request, VENDOR_NAME);
     
     return json({ 
