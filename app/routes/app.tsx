@@ -8,6 +8,7 @@ import { authenticate } from "../shopify.server";
 import { Hello } from "../components/Hello";
 import { SubscriptionProvider } from "../context/SubscriptionContext";
 import { SubscriptionGuard } from "../components/SubscriptionGuard";
+import { BillingGuard } from "../components/BillingGuard";
 import CRMDashboard from "../components/CRMDashboard";
 import { getCompletedOrdersByVendor } from "../services/orders.server";
 
@@ -28,14 +29,16 @@ export default function App() {
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <SubscriptionProvider>
         <SubscriptionGuard>
-          <NavMenu>
-            <Link to="/app" rel="home">
-              Panel de Control
-            </Link>
-            <Link to="/app/additional">Importar Productos</Link>
-            <Link to="/app/subscription">Suscripción</Link>
-          </NavMenu>
-          <Outlet />
+          <BillingGuard>
+            <NavMenu>
+              <Link to="/app" rel="home">
+                Panel de Control
+              </Link>
+              <Link to="/app/additional">Importar Productos</Link>
+              <Link to="/app/subscription">Suscripción</Link>
+            </NavMenu>
+            <Outlet />
+          </BillingGuard>
         </SubscriptionGuard>
       </SubscriptionProvider>
     </AppProvider>

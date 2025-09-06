@@ -1,7 +1,9 @@
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { authenticate } from '../shopify.server';
-import prisma from '../db.server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 const SUBSCRIPTION_DETAILS_QUERY = `
   query appSubscription {

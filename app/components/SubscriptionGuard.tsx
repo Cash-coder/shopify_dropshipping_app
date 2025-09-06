@@ -74,11 +74,7 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
 
   if (!isActive) {
     const handlePayment = () => {
-      const billingData = {
-        type: billingType[0],
-        number: billingNumber
-      };
-      paymentFetcher.submit(billingData, { method: 'post', action: '/api/create-payment' });
+      paymentFetcher.submit({}, { method: 'post', action: '/api/create-payment' });
     };
 
     return fallback || (
@@ -89,32 +85,12 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
               Se requiere Suscripción
             </Text>
             <Text as="p" variant="bodyMd">
-              Completa tus datos de facturación para suscribirte.
+              Tu suscripción no está activa. Completa el pago para acceder a la aplicación.
             </Text>
-            
-            <ChoiceList
-              title="Tipo de documento"
-              choices={[
-                { label: 'CIF', value: 'CIF' },
-                { label: 'DNI/NIE', value: 'DNI/NIE' },
-              ]}
-              selected={billingType}
-              onChange={setBillingType}
-            />
-            
-            <TextField
-              label="Número de documento"
-              value={billingNumber}
-              onChange={setBillingNumber}
-              placeholder={billingType[0] === 'CIF' ? 'Ej: B12345678' : 'Ej: 12345678Z'}
-              autoComplete="off"
-            />
-            
             <Button 
               primary 
               onClick={handlePayment}
               loading={paymentFetcher.state === 'submitting'}
-              disabled={!billingNumber.trim()}
             >
               Suscribirse Ahora
             </Button>
