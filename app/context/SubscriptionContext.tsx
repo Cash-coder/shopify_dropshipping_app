@@ -17,6 +17,7 @@ interface SubscriptionProviderProps {
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const fetcher = useFetcher<{ isActive: boolean; error?: string }>();
   const [isLoading, setIsLoading] = useState(true);
+  const [hasChecked, setHasChecked] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState(0);
 
   const refetch = (force = false) => {
@@ -30,8 +31,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     console.log('🔄 Starting subscription check using session');
     setIsLoading(true);
     setLastCheckTime(now);
+    
+    const shop = new URL(window.location.href).searchParams.get('shop');
     fetcher.submit(
-      {},
+      { shop: shop || '' },
       { method: 'post', action: '/api/subscription-status' }
     );
   };
@@ -46,18 +49,10 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   }, []);
 
   useEffect(() => {
-    if (fetcher.state === 'idle') {
+    if (fetcher.state === 'idle' && fetcher.data) {
       console.log('📊 Subscription check result:', fetcher.data);
-      
-      // If session isn't ready, retry after a short delay
-      if (fetcher.data?.error === 'Session not ready') {
-        console.log('⏳ Session not ready, retrying in 2 seconds...');
-        setTimeout(() => {
-          refetch(true);
-        }, 2000);
-      } else {
-        setIsLoading(false);
-      }
+      setHasChecked(true);
+      setIsLoading(false);
     }
   }, [fetcher.state, fetcher.data]);
 
@@ -73,8 +68,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   }, [isLoading, fetcher.state]);
 
   const value: SubscriptionContextType = {
-    isActive: fetcher.data?.isActive ?? false,
-    isLoading: fetcher.state === 'loading' || fetcher.state === 'submitting' || isLoading,
+    isActive: hasChecked ? (fetcher.data?.isActive ?? false) : false,
+    isLoading: !hasChecked || fetcher.state === 'loading' || fetcher.state === 'submitting' || isLoading,
     error: fetcher.data?.error,
     refetch,
   };

@@ -162,7 +162,8 @@ export default function CRMDashboard() {
   useEffect(() => {
     const fetchBillingData = async () => {
       try {
-        const response = await fetch('/api/billing');
+        const shop = new URL(window.location.href).searchParams.get('shop');
+        const response = await fetch(`/api/billing?shop=${shop || ''}`);
         const data = await response.json();
         
         if (data.success) {

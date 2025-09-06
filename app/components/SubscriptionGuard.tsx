@@ -47,7 +47,7 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
           <BlockStack align="center" inlineAlign="center" gap="400">
             <Spinner size="large" />
             <Text as="p" variant="bodyMd">
-              Checking subscription status...
+              Comprobando estado de tu Suscripción...
             </Text>
           </BlockStack>
         </Card>

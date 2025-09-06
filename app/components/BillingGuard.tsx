@@ -16,7 +16,8 @@ export function BillingGuard({ children }: BillingGuardProps) {
   useEffect(() => {
     // Delay API call to avoid shop null authentication issues on page load
     const timer = setTimeout(() => {
-      fetch('/api/subscription-details')
+      const shop = new URL(window.location.href).searchParams.get('shop');
+      fetch(`/api/subscription-details?shop=${shop || ''}`)
         .then(res => res.json())
         .then(data => {
           setBillingData(data.billingInfo);
