@@ -1,5 +1,5 @@
-import { ReactNode, useEffect } from 'react';
-import { Page, Card, Text, Spinner, BlockStack, Button } from '@shopify/polaris';
+import { ReactNode, useEffect, useState } from 'react';
+import { Page, Card, Text, Spinner, BlockStack, Button, TextField, ChoiceList } from '@shopify/polaris';
 import { useFetcher } from '@remix-run/react';
 import { useAppBridge } from '@shopify/app-bridge-react';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -13,6 +13,8 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
   const { isActive, isLoading, error } = useSubscription();
   const paymentFetcher = useFetcher<{ url?: string; error?: string }>();
   const app = useAppBridge();
+  const [billingType, setBillingType] = useState(['CIF']);
+  const [billingNumber, setBillingNumber] = useState('');
 
   useEffect(() => {
     if (paymentFetcher.data?.url) {
@@ -72,7 +74,11 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
 
   if (!isActive) {
     const handlePayment = () => {
-      paymentFetcher.submit({}, { method: 'post', action: '/api/create-payment' });
+      const billingData = {
+        type: billingType[0],
+        number: billingNumber
+      };
+      paymentFetcher.submit(billingData, { method: 'post', action: '/api/create-payment' });
     };
 
     return fallback || (
@@ -83,22 +89,35 @@ export function SubscriptionGuard({ children, fallback }: SubscriptionGuardProps
               Se requiere Suscripción
             </Text>
             <Text as="p" variant="bodyMd">
-              Tu suscripción no está activa. Completa el pago para acceder a la aplicación.
+              Completa tus datos de facturación para suscribirte.
             </Text>
+            
+            <ChoiceList
+              title="Tipo de documento"
+              choices={[
+                { label: 'CIF', value: 'CIF' },
+                { label: 'DNI/NIE', value: 'DNI/NIE' },
+              ]}
+              selected={billingType}
+              onChange={setBillingType}
+            />
+            
+            <TextField
+              label="Número de documento"
+              value={billingNumber}
+              onChange={setBillingNumber}
+              placeholder={billingType[0] === 'CIF' ? 'Ej: B12345678' : 'Ej: 12345678Z'}
+              autoComplete="off"
+            />
+            
             <Button 
               primary 
               onClick={handlePayment}
               loading={paymentFetcher.state === 'submitting'}
+              disabled={!billingNumber.trim()}
             >
               Suscribirse Ahora
             </Button>
-            {/* <Button 
-              variant="plain"
-              url="/debug/subscriptions"
-              target="_blank"
-            >
-              Debug Subscriptions
-            </Button> */}
           </BlockStack>
         </Card>
       </Page>

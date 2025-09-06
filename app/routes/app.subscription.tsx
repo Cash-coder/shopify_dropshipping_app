@@ -34,12 +34,20 @@ export default function SubscriptionPage() {
           <Text as="h2" variant="headingMd">Tu Suscripción</Text>
           
           {data ? (
-            <Text as="p" variant="bodyLg">
-              Estado de Suscripción: {data.isActive ? 'Activa' : 'Inactiva'}
-              {data.subscription?.currentPeriodEnd && data.isActive && 
-                `, renovación el ${formatDate(data.subscription.currentPeriodEnd)}`
-              }
-            </Text>
+            <BlockStack gap="200">
+              <Text as="p" variant="bodyLg">
+                Estado de Suscripción: {data.isActive ? 'Activa' : 'Inactiva'}
+                {data.subscription?.currentPeriodEnd && data.isActive && 
+                  `, renovación el ${formatDate(data.subscription.currentPeriodEnd)}`
+                }
+              </Text>
+              
+              {data.billingInfo && (
+                <Text as="p" variant="bodyMd">
+                  Datos de facturación: {data.billingInfo.type} - {data.billingInfo.number}
+                </Text>
+              )}
+            </BlockStack>
           ) : (
             <Text as="p">Cargando...</Text>
           )}

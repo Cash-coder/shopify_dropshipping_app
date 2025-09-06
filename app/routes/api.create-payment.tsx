@@ -13,6 +13,16 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get session for building return URL
     const { session } = await authenticate.admin(request);
     
+    // Get billing data from form
+    const formData = await request.formData();
+    const billingData = {
+      type: formData.get('type') as string,
+      number: formData.get('number') as string
+    };
+    
+    // Store billing data in session
+    session.billingInfo = billingData;
+    
     // Return URL after subscription confirmation
     const returnUrl = `https://admin.shopify.com/store/${session.shop.replace('.myshopify.com', '')}/apps/${process.env.SHOPIFY_API_KEY}/app`;
     

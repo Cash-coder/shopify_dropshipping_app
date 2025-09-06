@@ -33,6 +33,7 @@ const SUBSCRIPTION_DETAILS_QUERY = `
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const { admin, session } = await authenticate.admin(request);
+    const billingInfo = session.billingInfo;
     
     const response = await admin.graphql(SUBSCRIPTION_DETAILS_QUERY);
     const responseData = await response.json();
@@ -58,7 +59,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
           price: subscription.lineItems[0]?.plan?.pricingDetails?.price?.amount || 0,
           currency: subscription.lineItems[0]?.plan?.pricingDetails?.price?.currencyCode || 'EUR',
           interval: subscription.lineItems[0]?.plan?.pricingDetails?.interval || 'EVERY_30_DAYS',
-        }
+        },
+        billingInfo
       });
     }
 
