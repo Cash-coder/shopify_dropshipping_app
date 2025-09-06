@@ -14,6 +14,7 @@ export default function SubscriptionPage() {
   const [editing, setEditing] = useState(false);
   const [billingType, setBillingType] = useState(['CIF']);
   const [billingNumber, setBillingNumber] = useState('');
+  const [billingName, setBillingName] = useState('');
 
   useEffect(() => {
     fetch('/api/subscription-details')
@@ -23,6 +24,7 @@ export default function SubscriptionPage() {
         if (data.billingInfo) {
           setBillingType([data.billingInfo.type]);
           setBillingNumber(data.billingInfo.number);
+          setBillingName(data.billingInfo.name || '');
         }
       });
   }, []);
@@ -34,14 +36,15 @@ export default function SubscriptionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: billingType[0],
-          number: billingNumber
+          number: billingNumber,
+          name: billingName
         })
       });
       
       if (response.ok) {
         setData({
           ...data,
-          billingInfo: { type: billingType[0], number: billingNumber }
+          billingInfo: { type: billingType[0], number: billingNumber, name: billingName }
         });
         setEditing(false);
       }
@@ -87,9 +90,18 @@ export default function SubscriptionPage() {
                   />
                   
                   <TextField
+                    label={billingType[0] === 'CIF' ? 'Nombre de la empresa/persona jurídica' : 'Nombre de la persona física'}
+                    value={billingName}
+                    onChange={setBillingName}
+                    placeholder={billingType[0] === 'CIF' ? 'Nombre de la empresa' : 'Nombre y apellidos'}
+                    autoComplete="off"
+                  />
+                  
+                  <TextField
                     label="Número de documento"
                     value={billingNumber}
                     onChange={setBillingNumber}
+                    placeholder={billingType[0] === 'CIF' ? 'Ej: B12345678' : 'Ej: 12345678Z'}
                     autoComplete="off"
                   />
                   
@@ -105,7 +117,7 @@ export default function SubscriptionPage() {
               ) : (
                 <BlockStack gap="200">
                   <Text as="p" variant="bodyMd">
-                    Datos de facturación: {data.billingInfo ? `${data.billingInfo.type} - ${data.billingInfo.number}` : 'No configurado'}
+                    Datos de facturación: {data.billingInfo ? `${data.billingInfo.name || 'Sin nombre'} - ${data.billingInfo.type} - ${data.billingInfo.number}` : 'No configurado'}
                   </Text>
                   <Button onClick={() => setEditing(true)}>
                     Editar datos de facturación

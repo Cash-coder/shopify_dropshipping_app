@@ -11,6 +11,7 @@ export function BillingGuard({ children }: BillingGuardProps) {
   const [saving, setSaving] = useState(false);
   const [billingType, setBillingType] = useState(['CIF']);
   const [billingNumber, setBillingNumber] = useState('');
+  const [billingName, setBillingName] = useState('');
 
   useEffect(() => {
     fetch('/api/subscription-details')
@@ -29,12 +30,13 @@ export function BillingGuard({ children }: BillingGuardProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: billingType[0],
-          number: billingNumber
+          number: billingNumber,
+          name: billingName
         })
       });
       
       if (response.ok) {
-        setBillingData({ type: billingType[0], number: billingNumber });
+        setBillingData({ type: billingType[0], number: billingNumber, name: billingName });
       }
     } catch (error) {
       console.error('Error saving billing info:', error);
@@ -70,6 +72,14 @@ export function BillingGuard({ children }: BillingGuardProps) {
             />
             
             <TextField
+              label={billingType[0] === 'CIF' ? 'Nombre de la empresa/persona jurídica' : 'Nombre de la persona física'}
+              value={billingName}
+              onChange={setBillingName}
+              placeholder={billingType[0] === 'CIF' ? 'Nombre de la empresa' : 'Nombre y apellidos'}
+              autoComplete="off"
+            />
+            
+            <TextField
               label="Número de documento"
               value={billingNumber}
               onChange={setBillingNumber}
@@ -81,7 +91,7 @@ export function BillingGuard({ children }: BillingGuardProps) {
               primary 
               onClick={handleSave}
               loading={saving}
-              disabled={!billingNumber.trim()}
+              disabled={!billingNumber.trim() || !billingName.trim()}
             >
               Guardar y Continuar
             </Button>
