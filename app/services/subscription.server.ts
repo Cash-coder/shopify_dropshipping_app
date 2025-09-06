@@ -121,7 +121,6 @@ export async function checkSubscriptionStatus(request: Request): Promise<Subscri
     console.error('❌ Error checking subscription status:', error);
     return {
       isActive: false,
-      error: 'No se pudo comprobar el estado de su suscripción. Por favor, recargue la página.',
     };
   }
 }
