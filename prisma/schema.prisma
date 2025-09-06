@@ -31,3 +31,12 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+model BillingInfo {
+  id     String @id @default(cuid())
+  shop   String @unique
+  type   String // 'CIF' or 'DNI/NIE'  
+  number String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

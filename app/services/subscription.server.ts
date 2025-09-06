@@ -71,9 +71,23 @@ const CREATE_SUBSCRIPTION_MUTATION = `
 export async function checkSubscriptionStatus(request: Request): Promise<SubscriptionStatus> {
   try {
     const { admin, session } = await authenticate.admin(request);
+    
+    // Check if session is properly established
+    if (!session || !session.shop) {
+      console.log('❌ Session not ready, shop is null');
+      return { isActive: false, error: 'Session not ready' };
+    }
+    
     console.log('🔍 Checking Shopify subscription status for shop:', session.shop);
     
     const response = await admin.graphql(CHECK_SUBSCRIPTION_QUERY);
+    
+    // Check for authentication errors
+    if (!response.ok) {
+      console.log('❌ GraphQL request failed with status:', response.status);
+      return { isActive: false, error: 'Authentication failed' };
+    }
+    
     const responseData = await response.json();
 
     const subscriptions = responseData.data?.currentAppInstallation?.activeSubscriptions || [];

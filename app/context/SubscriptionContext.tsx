@@ -43,7 +43,16 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   useEffect(() => {
     if (fetcher.state === 'idle') {
       console.log('📊 Subscription check result:', fetcher.data);
-      setIsLoading(false);
+      
+      // If session isn't ready, retry after a short delay
+      if (fetcher.data?.error === 'Session not ready') {
+        console.log('⏳ Session not ready, retrying in 2 seconds...');
+        setTimeout(() => {
+          refetch(true);
+        }, 2000);
+      } else {
+        setIsLoading(false);
+      }
     }
   }, [fetcher.state, fetcher.data]);
 

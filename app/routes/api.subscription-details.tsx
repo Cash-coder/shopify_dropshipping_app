@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { authenticate } from '../shopify.server';
+import prisma from '../db.server';
 
 const SUBSCRIPTION_DETAILS_QUERY = `
   query appSubscription {
@@ -33,7 +34,11 @@ const SUBSCRIPTION_DETAILS_QUERY = `
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const { admin, session } = await authenticate.admin(request);
-    const billingInfo = session.billingInfo;
+    
+    // Get billing info from database
+    const billingInfo = await prisma.billingInfo.findUnique({
+      where: { shop: session.shop }
+    });
     
     const response = await admin.graphql(SUBSCRIPTION_DETAILS_QUERY);
     const responseData = await response.json();
@@ -64,7 +69,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       });
     }
 
-    return json({ isActive: false, subscription: null });
+    return json({ isActive: false, subscription: null, billingInfo });
     
   } catch (error) {
     console.error('Error fetching subscription details:', error);
