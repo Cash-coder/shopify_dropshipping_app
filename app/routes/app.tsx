@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Link, useLoaderData, useRouteError } from "@remix-run/react";
+import { Link, useLoaderData, useRouteError, Outlet } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
@@ -34,7 +34,7 @@ export default function App() {
             </Link>
             <Link to="/app/additional">Importar Productos</Link>
           </NavMenu>
-          <CRMDashboard />
+          <Outlet />
         </SubscriptionGuard>
       </SubscriptionProvider>
     </AppProvider>

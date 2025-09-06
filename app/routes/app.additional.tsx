@@ -26,7 +26,7 @@ export default function ImportProducts() {
         <Card>
           <BlockStack gap="300">
             <Text as="h2" variant="headingMd">
-              Importar productos desde Escriv-Ecom
+              Importar productos desde Escriv-Ecom a tu tienda
             </Text>
             <Text as="p" variant="bodyMd">
               Importa productos desde la tienda proveedora (droptest444) a tu tienda.
