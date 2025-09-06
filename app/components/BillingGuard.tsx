@@ -14,12 +14,18 @@ export function BillingGuard({ children }: BillingGuardProps) {
   const [billingName, setBillingName] = useState('');
 
   useEffect(() => {
-    fetch('/api/subscription-details')
-      .then(res => res.json())
-      .then(data => {
-        setBillingData(data.billingInfo);
-        setLoading(false);
-      });
+    // Delay API call to avoid shop null authentication issues on page load
+    const timer = setTimeout(() => {
+      fetch('/api/subscription-details')
+        .then(res => res.json())
+        .then(data => {
+          setBillingData(data.billingInfo);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSave = async () => {

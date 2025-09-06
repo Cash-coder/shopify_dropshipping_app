@@ -17,16 +17,22 @@ export default function SubscriptionPage() {
   const [billingName, setBillingName] = useState('');
 
   useEffect(() => {
-    fetch('/api/subscription-details')
-      .then(res => res.json())
-      .then(data => {
-        setData(data);
-        if (data.billingInfo) {
-          setBillingType([data.billingInfo.type]);
-          setBillingNumber(data.billingInfo.number);
-          setBillingName(data.billingInfo.name || '');
-        }
-      });
+    // Delay API call to avoid shop null authentication issues on page load
+    const timer = setTimeout(() => {
+      fetch('/api/subscription-details')
+        .then(res => res.json())
+        .then(data => {
+          setData(data);
+          if (data.billingInfo) {
+            setBillingType([data.billingInfo.type]);
+            setBillingNumber(data.billingInfo.number);
+            setBillingName(data.billingInfo.name || '');
+          }
+        })
+        .catch(() => setData({}));
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSave = async () => {

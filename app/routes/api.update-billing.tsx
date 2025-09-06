@@ -17,7 +17,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ error: 'Session not ready' }, { status: 400 });
     }
     
-    const { type, number } = await request.json();
+    const { type, number, name } = await request.json();
     
     console.log('💾 Updating billing info for shop:', session.shop);
     console.log('🔍 Prisma object:', !!prisma);
@@ -27,11 +27,12 @@ export async function action({ request }: ActionFunctionArgs) {
     // Update billing info in database
     await prisma.billingInfo.upsert({
       where: { shop: session.shop },
-      update: { type, number },
+      update: { type, number, name },
       create: { 
         shop: session.shop,
         type,
-        number 
+        number,
+        name 
       }
     });
     

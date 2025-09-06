@@ -177,7 +177,12 @@ export default function CRMDashboard() {
       }
     };
 
-    fetchBillingData();
+    // Delay API call to avoid shop null authentication issues on page load
+    const timer = setTimeout(() => {
+      fetchBillingData();
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, []);
   
   // Generate last 5 months dynamically
