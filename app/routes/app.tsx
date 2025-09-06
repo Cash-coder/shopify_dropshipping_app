@@ -33,6 +33,7 @@ export default function App() {
               Panel de Control
             </Link>
             <Link to="/app/additional">Importar Productos</Link>
+            <Link to="/app/subscription">Suscripción</Link>
           </NavMenu>
           <Outlet />
         </SubscriptionGuard>
