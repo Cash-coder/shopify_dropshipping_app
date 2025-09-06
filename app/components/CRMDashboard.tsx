@@ -179,12 +179,14 @@ export default function CRMDashboard() {
 
     fetchBillingData();
   }, []);
+  
   // Generate last 5 months dynamically
   const getLast5Months = () => {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const currentDate = new Date();
     const last5Months = [];
     
+    // get current month's index, from there get the prior 4 months using index -1
     for (let i = 4; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       const monthIndex = date.getMonth();
