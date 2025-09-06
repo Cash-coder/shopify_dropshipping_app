@@ -37,7 +37,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   useEffect(() => {
-    refetch();
+    // Wait 3 seconds after app installation before checking subscription
+    const timer = setTimeout(() => {
+      refetch();
+    }, 3000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
