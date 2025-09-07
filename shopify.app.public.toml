@@ -4,7 +4,7 @@
 client_id = "218950dbb1b01721766854e2d4382769"
 name = "escriv-ecom"
 handle = "escriv-ecom-1"
-application_url = "https://taught-ol-organizational-split.trycloudflare.com"
+application_url = "https://pants-steal-practice-lcd.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,7 +27,7 @@ api_version = "2025-07"
 scopes = "read_products, write_products, read_locations, write_locations, read_orders, read_products, write_inventory, write_products"
 
 [auth]
-redirect_urls = ["https://taught-ol-organizational-split.trycloudflare.com/auth/callback", "https://taught-ol-organizational-split.trycloudflare.com/auth/shopify/callback", "https://taught-ol-organizational-split.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://pants-steal-practice-lcd.trycloudflare.com/auth/callback", "https://pants-steal-practice-lcd.trycloudflare.com/auth/shopify/callback", "https://pants-steal-practice-lcd.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

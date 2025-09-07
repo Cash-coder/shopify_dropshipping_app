@@ -1,15 +1,20 @@
 import { useState } from 'react';
-import { Page, Card, Button, Text, BlockStack, Banner } from '@shopify/polaris';
+import { Page, Card, Button, Text, BlockStack, Banner, RadioButton, TextField, FormLayout } from '@shopify/polaris';
 import { useFetcher } from '@remix-run/react';
 import { TitleBar } from "@shopify/app-bridge-react";
 
 export default function ImportProducts() {
   const fetcher = useFetcher();
   const [importResult, setImportResult] = useState<any>(null);
+  const [markupType, setMarkupType] = useState('none');
+  const [markupValue, setMarkupValue] = useState('');
 
   const handleImport = () => {
     setImportResult(null);
-    fetcher.submit({}, { method: 'post', action: '/api/import-products' });
+    const formData = new FormData();
+    formData.append('markupType', markupType);
+    formData.append('markupValue', markupValue);
+    fetcher.submit(formData, { method: 'post', action: '/api/import-products' });
   };
 
   // Update result when fetch completes
@@ -30,11 +35,58 @@ export default function ImportProducts() {
             </Text>
             <Text as="p" variant="bodyMd">
               Importa productos desde la tienda proveedora (droptest444) a tu tienda.
+              El precio original del producto se guardará como "costo por artículo" y podrás aplicar un margen de ganancia.
             </Text>
+            
+            <FormLayout>
+              <Text as="h3" variant="headingSm">
+                Configuración de Precios
+              </Text>
+              
+              <BlockStack gap="200">
+                <RadioButton
+                  label="No cambiar precios - configurar manualmente más tarde"
+                  checked={markupType === 'none'}
+                  id="none"
+                  name="markupType"
+                  onChange={() => setMarkupType('none')}
+                />
+                
+                <RadioButton
+                  label="Agregar margen fijo (€)"
+                  checked={markupType === 'fixed'}
+                  id="fixed"
+                  name="markupType"
+                  onChange={() => setMarkupType('fixed')}
+                />
+                
+                <RadioButton
+                  label="Agregar margen porcentual (%)"
+                  checked={markupType === 'percentage'}
+                  id="percentage"
+                  name="markupType"
+                  onChange={() => setMarkupType('percentage')}
+                />
+              </BlockStack>
+              
+              {(markupType === 'fixed' || markupType === 'percentage') && (
+                <TextField
+                  label={markupType === 'fixed' ? 'Cantidad fija en euros' : 'Porcentaje de margen'}
+                  type="number"
+                  value={markupValue}
+                  onChange={(value) => setMarkupValue(value)}
+                  placeholder={markupType === 'fixed' ? '10.00' : '25'}
+                  suffix={markupType === 'fixed' ? '€' : '%'}
+                  autoComplete="off"
+                />
+              )}
+            </FormLayout>
+            
             <Button
               primary
               loading={isLoading}
               onClick={handleImport}
+              disabled={isLoading || ((markupType === 'fixed' || markupType === 'percentage') && !markupValue)}
             >
               Importar Productos
             </Button>

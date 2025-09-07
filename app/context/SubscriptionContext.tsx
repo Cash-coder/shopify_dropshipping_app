@@ -24,11 +24,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     const now = Date.now();
     // Prevent too frequent checks (minimum 2 seconds between checks) unless forced
     if (!force && now - lastCheckTime < 2000) {
-      console.log('⏸️ Skipping subscription check - too soon since last check');
+      console.log('Skipping subscription check - too soon since last check');
       return;
     }
     
-    console.log('🔄 Starting subscription check using session');
+    console.log('Starting subscription check using session');
     setIsLoading(true);
     setLastCheckTime(now);
     
@@ -50,7 +50,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data) {
-      console.log('📊 Subscription check result:', fetcher.data);
+      console.log('Subscription check result:', fetcher.data);
       setHasChecked(true);
       setIsLoading(false);
     }
@@ -59,7 +59,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoading && fetcher.state !== 'loading' && fetcher.state !== 'submitting') {
-        console.log('⏰ Subscription check timeout - forcing loading to false');
+        console.log('Subscription check timeout - forcing loading to false');
         setIsLoading(false);
       }
     }, 10000);

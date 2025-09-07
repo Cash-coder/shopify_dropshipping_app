@@ -10,6 +10,13 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     console.log('Starting product import process');
     
+    // Get markup options from form data
+    const formData = await request.formData();
+    const markupType = formData.get('markupType') as string || 'none';
+    const markupValue = parseFloat(formData.get('markupValue') as string || '0');
+    
+    console.log('Markup settings:', { markupType, markupValue });
+    
     // For now, we'll need a supplier access token
     // In production, this would be stored securely
     const SUPPLIER_ACCESS_TOKEN = process.env.SUPPLIER_ACCESS_TOKEN;
@@ -108,7 +115,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     for (const product of supplierProducts) {
       try {
-        await importProductToStore(request, product, session, locationId);
+        await importProductToStore(request, product, session, locationId, markupType, markupValue);
         imported++;
       } catch (error) {
         console.error(`Failed to import ${product.title}:`, error);

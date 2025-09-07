@@ -197,6 +197,23 @@ const ADJUST_INVENTORY_MUTATION = `
   }
 `;
 
+const UPDATE_INVENTORY_ITEM_COST_MUTATION = `
+  mutation inventoryItemUpdate($id: ID!, $input: InventoryItemInput!) {
+    inventoryItemUpdate(id: $id, input: $input) {
+      inventoryItem {
+        id
+        unitCost {
+          amount
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
 export async function getSupplierProducts(supplierAccessToken: string) {
   // const SUPPLIER_STORE = "droptest444.myshopify.com";
   try {
@@ -245,7 +262,22 @@ export async function getSupplierProducts(supplierAccessToken: string) {
 }
 
 
-export async function importProductToStore(request: Request, product: any, session?: any, locationId?: string, retryCount = 0) {
+function calculateMarkupPrice(originalPrice: string, markupType: string, markupValue: number): string {
+  const price = parseFloat(originalPrice);
+  if (isNaN(price)) return originalPrice;
+  
+  switch (markupType) {
+    case 'fixed':
+      return (price + markupValue).toFixed(2);
+    case 'percentage':
+      return (price * (1 + markupValue / 100)).toFixed(2);
+    case 'none':
+    default:
+      return originalPrice;
+  }
+}
+
+export async function importProductToStore(request: Request, product: any, session?: any, locationId?: string, markupType: string = 'none', markupValue: number = 0, retryCount = 0) {
   const MAX_RETRIES = 2;
   
   try {
@@ -333,7 +365,10 @@ export async function importProductToStore(request: Request, product: any, sessi
       const firstVariant = product.variants.edges[0].node;
       const createdFirstVariant = createdProduct.variants.nodes[0];
       
-      console.log(`Updating first variant with price ${firstVariant.price}, SKU ${firstVariant.sku}, and quantity ${firstVariant.inventoryQuantity}...`);
+      const originalPrice = firstVariant.price || '0.00';
+      const finalPrice = calculateMarkupPrice(originalPrice, markupType, markupValue);
+      
+      console.log(`Updating first variant with original price ${originalPrice}, final price ${finalPrice}, SKU ${firstVariant.sku}, and quantity ${firstVariant.inventoryQuantity}...`);
       
       const updateVariantResponse = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
         method: 'POST',
@@ -347,7 +382,7 @@ export async function importProductToStore(request: Request, product: any, sessi
             productId: createdProduct.id,
             variants: [{
               id: createdFirstVariant.id,
-              price: firstVariant.price || '0.00',
+              price: finalPrice,
               inventoryItem: {
                 sku: firstVariant.sku || '',
                 tracked: true,
@@ -371,6 +406,38 @@ export async function importProductToStore(request: Request, product: any, sessi
         console.error('First variant update user errors:', updateResult.data.productVariantsBulkUpdate.userErrors);
       } else {
         console.log('First variant updated successfully');
+        
+        // Now update the cost per item separately
+        if (createdFirstVariant.inventoryItem?.id) {
+          console.log(`Updating cost per item for first variant to ${originalPrice}...`);
+          
+          const updateCostResponse = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': currentSession.accessToken,
+            },
+            body: JSON.stringify({
+              query: UPDATE_INVENTORY_ITEM_COST_MUTATION,
+              variables: {
+                id: createdFirstVariant.inventoryItem.id,
+                input: {
+                  cost: parseFloat(originalPrice)
+                }
+              }
+            })
+          });
+          
+          const costResult = await updateCostResponse.json();
+          
+          if (costResult.errors) {
+            console.error('Cost update errors:', costResult.errors);
+          } else if (costResult.data?.inventoryItemUpdate?.userErrors?.length > 0) {
+            console.error('Cost update user errors:', costResult.data.inventoryItemUpdate.userErrors);
+          } else {
+            console.log('Cost per item updated successfully');
+          }
+        }
         
         // Now adjust inventory quantity separately
         if (firstVariant.inventoryQuantity && firstVariant.inventoryQuantity > 0) {
@@ -455,8 +522,11 @@ export async function importProductToStore(request: Request, product: any, sessi
       
       const variantsInput = additionalVariants.map((variantEdge: any) => {
         const variant = variantEdge.node;
+        const originalPrice = variant.price || '0.00';
+        const finalPrice = calculateMarkupPrice(originalPrice, markupType, markupValue);
+        
         return {
-          price: variant.price || '0.00',
+          price: finalPrice,
           inventoryItem: {
             sku: variant.sku || '',
             tracked: true,
@@ -501,6 +571,49 @@ export async function importProductToStore(request: Request, product: any, sessi
         console.error('Variants creation user errors:', variantsResult.data.productVariantsBulkCreate.userErrors);
       } else {
         console.log(`Successfully created ${variantsResult.data?.productVariantsBulkCreate?.productVariants?.length || 0} variants`);
+        
+        // Update cost for each additional variant
+        const createdVariants = variantsResult.data?.productVariantsBulkCreate?.productVariants || [];
+        for (let i = 0; i < createdVariants.length && i < additionalVariants.length; i++) {
+          const createdVariant = createdVariants[i];
+          const originalVariant = additionalVariants[i].node;
+          const originalPrice = originalVariant.price || '0.00';
+          
+          if (createdVariant.inventoryItem?.id) {
+            console.log(`Updating cost per item for additional variant ${i + 1} to ${originalPrice}...`);
+            
+            try {
+              const updateCostResponse = await fetch(`https://${currentSession.shop}/admin/api/2025-01/graphql.json`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Shopify-Access-Token': currentSession.accessToken,
+                },
+                body: JSON.stringify({
+                  query: UPDATE_INVENTORY_ITEM_COST_MUTATION,
+                  variables: {
+                    id: createdVariant.inventoryItem.id,
+                    input: {
+                      cost: parseFloat(originalPrice)
+                    }
+                  }
+                })
+              });
+              
+              const costResult = await updateCostResponse.json();
+              
+              if (costResult.errors) {
+                console.error(`Cost update errors for variant ${i + 1}:`, costResult.errors);
+              } else if (costResult.data?.inventoryItemUpdate?.userErrors?.length > 0) {
+                console.error(`Cost update user errors for variant ${i + 1}:`, costResult.data.inventoryItemUpdate.userErrors);
+              } else {
+                console.log(`Cost per item updated successfully for variant ${i + 1}`);
+              }
+            } catch (error) {
+              console.error(`Failed to update cost for variant ${i + 1}:`, error);
+            }
+          }
+        }
       }
     }
     

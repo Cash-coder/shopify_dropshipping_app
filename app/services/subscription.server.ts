@@ -74,11 +74,11 @@ export async function checkSubscriptionStatus(request: Request): Promise<Subscri
     
     // Check if session is properly established
     if (!session || !session.shop) {
-      console.log('❌ Session not ready, shop is null');
+      console.log('Session not ready, shop is null');
       return { isActive: false, error: 'Session not ready' };
     }
     
-    console.log('🔍 Checking Shopify subscription status for shop:', session.shop);
+    console.log('Checking Shopify subscription status for shop:', session.shop);
     
     const response = await admin.graphql(CHECK_SUBSCRIPTION_QUERY);
     
@@ -92,7 +92,7 @@ export async function checkSubscriptionStatus(request: Request): Promise<Subscri
 
     const subscriptions = responseData.data?.currentAppInstallation?.activeSubscriptions || [];
     
-    console.log('📊 Found', subscriptions.length, 'active subscriptions');
+    console.log('Found', subscriptions.length, 'active subscriptions');
     
     // Filter out test subscriptions in production
     const activeSubscriptions = subscriptions.filter((sub: any) => 
@@ -134,7 +134,7 @@ export async function createAppSubscription(
 ) {
   try {
     const { admin, session } = await authenticate.admin(request);
-    console.log('💳 Creating Shopify app subscription for shop:', session.shop);
+    console.log('Creating Shopify app subscription for shop:', session.shop);
     
     const variables = {
       name: planName,
