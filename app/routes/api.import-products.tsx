@@ -4,6 +4,9 @@ import { getSupplierProducts, importProductToStore } from '../services/product-i
 import { authenticate } from '../shopify.server';
 
 export async function action({ request }: ActionFunctionArgs) {
+  
+  const WAREHOUSE_NAME = 'Almacén Escriv Ecom';
+  
   try {
     console.log('Starting product import process');
     
@@ -73,7 +76,7 @@ export async function action({ request }: ActionFunctionArgs) {
           }`,
           variables: {
             input: {
-              name: 'Almacen Escriv Ecom',
+              name: WAREHOUSE_NAME,
               address: {
                 address1: 'Warehouse Address',
                 city: 'Valencia',
