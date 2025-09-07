@@ -29,19 +29,73 @@ export async function action({ request }: ActionFunctionArgs) {
     // Get session once for all imports
     const { session } = await authenticate.admin(request);
     
-    // Get primary location ID once for all products
-    const locationResponse = await fetch(`https://${session.shop}/admin/api/2025-01/graphql.json`, {
+    // Check if our custom location exists, if not create it
+    const checkLocationResponse = await fetch(`https://${session.shop}/admin/api/2025-01/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Shopify-Access-Token': session.accessToken,
       },
       body: JSON.stringify({
-        query: `query { locations(first: 1) { edges { node { id name } } } }`
+        query: `query { locations(first: 10) { edges { node { id name } } } }`
       })
     });
-    const locationResult = await locationResponse.json();
-    const locationId = locationResult.data?.locations?.edges?.[0]?.node?.id;
+    const locationResult = await checkLocationResponse.json();
+    const locations = locationResult.data?.locations?.edges || [];
+    
+    let locationId = locations.find(loc => loc.node.name === 'Almacen Escriv Ecom')?.node?.id;
+    
+    if (!locationId) {
+      console.log('Creating custom location: Almacen Escriv Ecom');
+      const createLocationResponse = await fetch(`https://${session.shop}/admin/api/2025-01/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': session.accessToken,
+        },
+        body: JSON.stringify({
+          query: `mutation locationAdd($input: LocationAddInput!) {
+            locationAdd(input: $input) {
+              location {
+                id
+                name
+                address {
+                  address1
+                  city
+                  countryCode
+                }
+              }
+              userErrors {
+                field
+                message
+              }
+            }
+          }`,
+          variables: {
+            input: {
+              name: 'Almacen Escriv Ecom',
+              address: {
+                address1: 'Warehouse Address',
+                city: 'Valencia',
+                countryCode: 'ES'
+              }
+            }
+          }
+        })
+      });
+      
+      const createResult = await createLocationResponse.json();
+      if (createResult.errors || createResult.data?.locationAdd?.userErrors?.length > 0) {
+        console.error('Failed to create location:', createResult.errors || createResult.data.locationAdd.userErrors);
+        // Fall back to first available location
+        locationId = locations[0]?.node?.id;
+      } else {
+        locationId = createResult.data.locationAdd.location.id;
+        console.log('Created location with ID:', locationId);
+      }
+    } else {
+      console.log('Using existing custom location:', locationId);
+    }
     
     console.log('Using location ID for inventory:', locationId);
     

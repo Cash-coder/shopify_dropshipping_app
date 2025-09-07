@@ -4,7 +4,7 @@
 client_id = "218950dbb1b01721766854e2d4382769"
 name = "escriv-ecom"
 handle = "escriv-ecom-1"
-application_url = "https://surgical-mpegs-gathering-predictions.trycloudflare.com"
+application_url = "https://taught-ol-organizational-split.trycloudflare.com"
 embedded = true
 
 [build]
@@ -24,10 +24,10 @@ api_version = "2025-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products, write_products, read_locations, read_orders, read_products, write_inventory, write_products"
+scopes = "read_products, write_products, read_locations, write_locations, read_orders, read_products, write_inventory, write_products"
 
 [auth]
-redirect_urls = ["https://surgical-mpegs-gathering-predictions.trycloudflare.com/auth/callback", "https://surgical-mpegs-gathering-predictions.trycloudflare.com/auth/shopify/callback", "https://surgical-mpegs-gathering-predictions.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://taught-ol-organizational-split.trycloudflare.com/auth/callback", "https://taught-ol-organizational-split.trycloudflare.com/auth/shopify/callback", "https://taught-ol-organizational-split.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

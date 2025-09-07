@@ -133,6 +133,44 @@ const UPDATE_FIRST_VARIANT_MUTATION = `
   }
 `;
 
+const CREATE_LOCATION_MUTATION = `
+  mutation locationAdd($input: LocationAddInput!) {
+    locationAdd(input: $input) {
+      location {
+        id
+        name
+        address {
+          address1
+          city
+          country
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+const ACTIVATE_INVENTORY_MUTATION = `
+  mutation inventoryActivate($inventoryItemId: ID!, $locationId: ID!) {
+    inventoryActivate(inventoryItemId: $inventoryItemId, locationId: $locationId) {
+      inventoryLevel {
+        id
+        quantities(names: ["available"]) {
+          name
+          quantity
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
 const ADJUST_INVENTORY_MUTATION = `
   mutation inventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!) {
     inventoryAdjustQuantities(input: $input) {
@@ -336,9 +374,36 @@ export async function importProductToStore(request: Request, product: any, sessi
         
         // Now adjust inventory quantity separately
         if (firstVariant.inventoryQuantity && firstVariant.inventoryQuantity > 0) {
-          console.log(`Adjusting inventory for first variant to ${firstVariant.inventoryQuantity}...`);
+          console.log(`Activating and adjusting inventory for first variant to ${firstVariant.inventoryQuantity}...`);
           console.log('Using inventoryItemId:', createdFirstVariant.inventoryItem?.id);
           console.log('Using locationId:', locationId);
+          
+          // First activate inventory at the location
+          const activateInventoryResponse = await fetch(`https://${session.shop}/admin/api/2025-01/graphql.json`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Access-Token': session.accessToken,
+            },
+            body: JSON.stringify({
+              query: ACTIVATE_INVENTORY_MUTATION,
+              variables: {
+                inventoryItemId: createdFirstVariant.inventoryItem?.id,
+                locationId: locationId
+              }
+            })
+          });
+          
+          const activateResult = await activateInventoryResponse.json();
+          console.log('Inventory activation response:', JSON.stringify(activateResult, null, 2));
+          
+          if (activateResult.errors) {
+            console.error('Inventory activation errors:', activateResult.errors);
+          } else if (activateResult.data?.inventoryActivate?.userErrors?.length > 0) {
+            console.error('Inventory activation user errors:', activateResult.data.inventoryActivate.userErrors);
+          } else {
+            console.log('Inventory activated successfully');
+          }
           
           const inventoryInput = {
             reason: 'correction',
