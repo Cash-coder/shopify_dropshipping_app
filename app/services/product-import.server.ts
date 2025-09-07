@@ -229,7 +229,8 @@ export async function getSupplierProducts(supplierAccessToken: string) {
       },
       body: JSON.stringify({
         query: GET_PRODUCTS_QUERY,
-        variables: { first: 10 }
+        // variables: { first: 10 }
+        variables: { first: 250 }
       })
     });
 

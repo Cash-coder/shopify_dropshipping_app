@@ -34,8 +34,7 @@ export default function ImportProducts() {
               Importar productos desde Escriv-Ecom a tu tienda
             </Text>
             <Text as="p" variant="bodyMd">
-              Importa productos desde la tienda proveedora (droptest444) a tu tienda.
-              El precio original del producto se guardará como "costo por artículo" y podrás aplicar un margen de ganancia.
+              El precio original del proveedor se guardará como "costo por artículo" o "Cost per item" y a continuación podrás aplicar un margen de ganancia a cada producto.
             </Text>
             
             <FormLayout>

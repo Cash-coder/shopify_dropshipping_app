@@ -124,7 +124,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     return json({
-      message: `Successfully imported ${imported} products`,
+      message: `Importados exitosamente ${imported} productos`,
       imported,
       total: supplierProducts.length,
       errors: errors.length > 0 ? errors : undefined
