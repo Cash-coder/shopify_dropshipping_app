@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "BillingInfo" ADD COLUMN     "address" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "email" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "phone" TEXT NOT NULL DEFAULT '';

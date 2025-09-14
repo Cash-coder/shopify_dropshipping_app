@@ -15,6 +15,9 @@ export default function SubscriptionPage() {
   const [billingType, setBillingType] = useState(['CIF']);
   const [billingNumber, setBillingNumber] = useState('');
   const [billingName, setBillingName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [billingAddress, setBillingAddress] = useState('');
 
   useEffect(() => {
     // Delay API call to avoid shop null authentication issues on page load
@@ -28,6 +31,9 @@ export default function SubscriptionPage() {
             setBillingType([data.billingInfo.type]);
             setBillingNumber(data.billingInfo.number);
             setBillingName(data.billingInfo.name || '');
+            setEmail(data.billingInfo.email || '');
+            setPhone(data.billingInfo.phone || '');
+            setBillingAddress(data.billingInfo.address || '');
           }
         })
         .catch(() => setData({}));
@@ -44,14 +50,17 @@ export default function SubscriptionPage() {
         body: JSON.stringify({
           type: billingType[0],
           number: billingNumber,
-          name: billingName
+          name: billingName,
+          email: email,
+          phone: phone,
+          address: billingAddress
         })
       });
       
       if (response.ok) {
         setData({
           ...data,
-          billingInfo: { type: billingType[0], number: billingNumber, name: billingName }
+          billingInfo: { type: billingType[0], number: billingNumber, name: billingName, email: email, phone: phone, address: billingAddress }
         });
         setEditing(false);
       }
@@ -111,6 +120,33 @@ export default function SubscriptionPage() {
                     placeholder={billingType[0] === 'CIF' ? 'Ej: B12345678' : 'Ej: 12345678Z'}
                     autoComplete="off"
                   />
+
+                  <TextField
+                    label="Email *"
+                    type="email"
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="ejemplo@email.com"
+                    autoComplete="email"
+                  />
+
+                  <TextField
+                    label="Teléfono (opcional)"
+                    type="tel"
+                    value={phone}
+                    onChange={setPhone}
+                    placeholder="Ej: 123456789"
+                    autoComplete="tel"
+                  />
+
+                  <TextField
+                    label="Dirección de facturación *"
+                    multiline={3}
+                    value={billingAddress}
+                    onChange={setBillingAddress}
+                    placeholder="Calle, número, código postal, ciudad, provincia"
+                    autoComplete="street-address"
+                  />
                   
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <Button primary onClick={handleSave}>
@@ -123,9 +159,32 @@ export default function SubscriptionPage() {
                 </BlockStack>
               ) : (
                 <BlockStack gap="200">
-                  <Text as="p" variant="bodyMd">
-                    Datos de facturación: {data.billingInfo ? `${data.billingInfo.name || 'Sin nombre'} - ${data.billingInfo.type} - ${data.billingInfo.number}` : 'No configurado'}
-                  </Text>
+                  <BlockStack gap="200">
+                    <Text as="p" variant="bodyMd">
+                      <strong>Datos de facturación:</strong>
+                    </Text>
+                    {data.billingInfo ? (
+                      <BlockStack gap="100">
+                        <Text as="p" variant="bodyMd">
+                          Nombre: {data.billingInfo.name || 'Sin nombre'}
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          Documento: {data.billingInfo.type} - {data.billingInfo.number}
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          Email: {data.billingInfo.email || 'No configurado'}
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          Teléfono: {data.billingInfo.phone || 'No configurado'}
+                        </Text>
+                        <Text as="p" variant="bodyMd">
+                          Dirección: {data.billingInfo.address || 'No configurado'}
+                        </Text>
+                      </BlockStack>
+                    ) : (
+                      <Text as="p" variant="bodyMd">No configurado</Text>
+                    )}
+                  </BlockStack>
                   <Button onClick={() => setEditing(true)}>
                     Editar datos de facturación
                   </Button>

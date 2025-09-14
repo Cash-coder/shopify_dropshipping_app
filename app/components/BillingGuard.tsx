@@ -12,6 +12,9 @@ export function BillingGuard({ children }: BillingGuardProps) {
   const [billingType, setBillingType] = useState(['CIF']);
   const [billingNumber, setBillingNumber] = useState('');
   const [billingName, setBillingName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [billingAddress, setBillingAddress] = useState('');
 
   useEffect(() => {
     // Delay API call to avoid shop null authentication issues on page load
@@ -38,12 +41,15 @@ export function BillingGuard({ children }: BillingGuardProps) {
         body: JSON.stringify({
           type: billingType[0],
           number: billingNumber,
-          name: billingName
+          name: billingName,
+          email: email,
+          phone: phone,
+          address: billingAddress
         })
       });
       
       if (response.ok) {
-        setBillingData({ type: billingType[0], number: billingNumber, name: billingName });
+        setBillingData({ type: billingType[0], number: billingNumber, name: billingName, email: email, phone: phone, address: billingAddress });
       }
     } catch (error) {
       console.error('Error saving billing info:', error);
@@ -93,12 +99,39 @@ export function BillingGuard({ children }: BillingGuardProps) {
               placeholder={billingType[0] === 'CIF' ? 'Ej: B12345678' : 'Ej: 12345678Z'}
               autoComplete="off"
             />
-            
-            <Button 
-              primary 
+
+            <TextField
+              label="Email *"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="ejemplo@email.com"
+              autoComplete="email"
+            />
+
+            <TextField
+              label="Teléfono (opcional)"
+              type="tel"
+              value={phone}
+              onChange={setPhone}
+              placeholder="Ej: 123456789"
+              autoComplete="tel"
+            />
+
+            <TextField
+              label="Dirección de facturación *"
+              multiline={3}
+              value={billingAddress}
+              onChange={setBillingAddress}
+              placeholder="Calle, número, código postal, ciudad, provincia"
+              autoComplete="street-address"
+            />
+
+            <Button
+              primary
               onClick={handleSave}
               loading={saving}
-              disabled={!billingNumber.trim() || !billingName.trim()}
+              disabled={!billingNumber.trim() || !billingName.trim() || !email.trim() || !billingAddress.trim()}
             >
               Guardar y Continuar
             </Button>

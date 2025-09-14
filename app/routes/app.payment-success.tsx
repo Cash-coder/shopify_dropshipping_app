@@ -12,7 +12,7 @@ export default function PaymentSuccess() {
   useEffect(() => {
     // Immediately refetch subscription status after successful payment
     if (!hasRefetched) {
-      console.log('🔄 Refetching subscription status after payment...');
+      console.log('Refetching subscription status after payment...');
       refetch();
       setHasRefetched(true);
     }
@@ -21,7 +21,7 @@ export default function PaymentSuccess() {
   // Auto-redirect when subscription becomes active
   useEffect(() => {
     if (isActive && hasRefetched) {
-      console.log('✅ Subscription detected as active, redirecting to app...');
+      console.log('Subscription detected as active, redirecting to app...');
       const timer = setTimeout(() => {
         window.location.href = '/app'; // Force full page reload to reset context
       }, 3000);
@@ -33,7 +33,7 @@ export default function PaymentSuccess() {
   useEffect(() => {
     if (hasRefetched && !isActive && !isLoading && retryCount < 5) {
       const timer = setTimeout(() => {
-        console.log(`🔄 Retrying subscription check... (${retryCount + 1}/5)`);
+        console.log(`Retrying subscription check... (${retryCount + 1}/5)`);
         refetch();
         setRetryCount(prev => prev + 1);
       }, 3000);

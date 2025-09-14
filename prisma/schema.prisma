@@ -33,11 +33,14 @@ model Session {
 }
 
 model BillingInfo {
-  id     String @id @default(cuid())
-  shop   String @unique
-  type   String // 'CIF' or 'DNI/NIE'  
-  number String
-  name   String @default("") // Company name for CIF, person name for DNI/NIE
+  id        String @id @default(cuid())
+  shop      String @unique
+  type      String // 'CIF' or 'DNI/NIE'
+  number    String
+  name      String @default("") // Company name for CIF, person name for DNI/NIE
+  email     String @default("")
+  phone     String @default("")
+  address   String @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
