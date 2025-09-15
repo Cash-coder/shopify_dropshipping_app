@@ -1,0 +1,34 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+# NGROK CONFIGURATION
+
+client_id = "5406990bad8d417d70fb03846a1ae381"
+name = "escriv-ecom-ngrok"
+handle = "escriv-ecom-ngrok"
+#application_url = "https://tons-keywords-reservations-course.trycloudflare.com"
+application_url = "https://perform-beings-china-acc.trycloudflare.com"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_products"
+
+[auth]
+redirect_urls = ["https://perform-beings-china-acc.trycloudflare.com/auth/callback", "https://perform-beings-china-acc.trycloudflare.com/auth/shopify/callback", "https://perform-beings-china-acc.trycloudflare.com/api/auth/callback"]
+
+[pos]
+embedded = false
