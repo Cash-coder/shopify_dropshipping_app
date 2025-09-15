@@ -247,14 +247,25 @@ export async function getSupplierProducts(supplierAccessToken: string) {
       console.log('GraphQL errors:', JSON.stringify(result.errors, null, 2));
     }
 
-    const products = result.data?.products?.edges?.map((edge: any) => edge.node) || [];
-    console.log('Found products:', products.length);
-    
+    const allProducts = result.data?.products?.edges?.map((edge: any) => edge.node) || [];
+    console.log('Found products before filtering:', allProducts.length);
+
+    // Filter out products with type 'digital'
+    const products = allProducts.filter((product: any) => {
+      const isDigital = product.productType?.toLowerCase() === 'digital';
+      if (isDigital) {
+        console.log(`Skipping digital product: ${product.title}`);
+      }
+      return !isDigital;
+    });
+
+    console.log('Products after filtering out digital:', products.length);
+
     // Log first product data to see what we're getting
     if (products.length > 0) {
       console.log('Sample product data:', JSON.stringify(products[0], null, 2));
     }
-    
+
     return products;
   } catch (error) {
     console.error('Error fetching supplier products:', error);
