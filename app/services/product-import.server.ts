@@ -229,8 +229,8 @@ export async function getSupplierProducts(supplierAccessToken: string) {
       },
       body: JSON.stringify({
         query: GET_PRODUCTS_QUERY,
-        // variables: { first: 10 } // limit import quantity for testing | keywords: filter import limit testing
-        variables: { first: 250 }
+        variables: { first: 15 } // limit import quantity for testing | keywords: filter import limit testing
+        // variables: { first: 250 }
       })
     });
 

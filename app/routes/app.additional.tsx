@@ -87,8 +87,14 @@ export default function ImportProducts() {
               onClick={handleImport}
               disabled={isLoading || ((markupType === 'fixed' || markupType === 'percentage') && !markupValue)}
             >
-              Importar Productos
+              {isLoading ? 'Importando productos...' : 'Importar Productos'}
             </Button>
+
+            {isLoading && (
+              <Banner status="info">
+                <Text as="p">Importando productos desde el proveedor, esto puede llevar un momento...</Text>
+              </Banner>
+            )}
           </BlockStack>
         </Card>
 
