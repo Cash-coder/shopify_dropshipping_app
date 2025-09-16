@@ -229,8 +229,8 @@ export async function getSupplierProducts(supplierAccessToken: string) {
       },
       body: JSON.stringify({
         query: GET_PRODUCTS_QUERY,
-        // variables: { first: 10 }
-        variables: { first: 250 }
+        variables: { first: 10 } // limit import quantity for testing
+        // variables: { first: 250 }
       })
     });
 
@@ -366,6 +366,16 @@ export async function importProductToStore(request: Request, product: any, sessi
 
     if (result.data?.productCreate?.userErrors?.length > 0) {
       console.error(`Product creation errors for ${product.title}:`, result.data.productCreate.userErrors);
+
+      // Check for duplicate handle error
+      const handleError = result.data.productCreate.userErrors.find(error =>
+        error.field?.includes('handle') && error.message?.includes('already in use')
+      );
+
+      if (handleError) {
+        throw new Error(`Este producto ya existe en tu tienda: ${product.title}`);
+      }
+
       throw new Error(`Product creation errors: ${JSON.stringify(result.data.productCreate.userErrors)}`);
     }
 

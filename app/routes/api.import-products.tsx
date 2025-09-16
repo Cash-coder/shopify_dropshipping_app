@@ -119,7 +119,13 @@ export async function action({ request }: ActionFunctionArgs) {
         imported++;
       } catch (error) {
         console.error(`Failed to import ${product.title}:`, error);
-        errors.push(`${product.title}: ${error}`);
+
+        // Check if it's a duplicate product error (already includes the title)
+        if (error.message?.includes('Este producto ya existe en tu tienda:')) {
+          errors.push(`Error: ${error.message}`);
+        } else {
+          errors.push(`${product.title}: ${error}`);
+        }
       }
     }
 
